@@ -8,10 +8,12 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
-	"github.com/gin-gonic/gin"
-
+	"github.com/gianghp123/Vidmerce/backend/services/internal/configs"
 	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets"
+	"github.com/gianghp123/Vidmerce/backend/services/internal/storage"
+	"github.com/gin-gonic/gin"
 )
 
 var ginLambda *ginadapter.GinLambda
@@ -19,18 +21,21 @@ var ginLambda *ginadapter.GinLambda
 func init() {
 	log.Printf("Gin cold start")
 
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-southeast-1"))
+	sdkConfig, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-southeast-1"))
 	if err != nil {
-		log.Fatalf("unable to load SDK config: %v", err)
+		log.Fatalf("Couldn't load default configuration. Have you set up your AWS account?: %v", err)
 	}
 
-	dbClient := dynamodb.NewFromConfig(cfg)
+	dbClient := dynamodb.NewFromConfig(sdkConfig)
+
+	s3Config := configs.LoadS3Config()
+	s3Client := storage.NewS3Storage(s3.NewFromConfig(sdkConfig), s3Config.BucketName)
 
 	r := gin.Default()
 
 	api := r.Group("/api")
 
-	assets.RegisterRoutes(api, dbClient)
+	assets.RegisterRoutes(api, dbClient, s3Client)
 
 	ginLambda = ginadapter.New(r)
 }

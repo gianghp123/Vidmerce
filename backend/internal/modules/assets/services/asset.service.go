@@ -6,6 +6,7 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/services/internal/core/response"
 	res "github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/dtos/res"
 	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/repositories"
+	"github.com/gianghp123/Vidmerce/backend/services/internal/storage"
 )
 
 type AssetService interface {
@@ -15,11 +16,12 @@ type AssetService interface {
 }
 
 type assetService struct {
-	repo repositories.AssetRepository
+	repo    repositories.AssetRepository
+	storage storage.Storage
 }
 
-func NewAssetService(repo repositories.AssetRepository) AssetService {
-	return &assetService{repo: repo}
+func NewAssetService(repo repositories.AssetRepository, storage storage.Storage) AssetService {
+	return &assetService{repo: repo, storage: storage}
 }
 
 func (s *assetService) GenerateUploadUrls(ctx context.Context, count int) (*res.GenerateUploadUrlsRes, *response.AppError) {
