@@ -11,3 +11,7 @@ apis.md
 vendor
 _pycache_
 venv
+
+AGENTS.md
+instruction.md
+.kilo
