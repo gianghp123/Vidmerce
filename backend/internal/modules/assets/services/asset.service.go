@@ -3,15 +3,15 @@ package services
 import (
 	"context"
 
-	"github.com/gianghp123/Vidmerce/backend/services/internal/core"
+	"github.com/gianghp123/Vidmerce/backend/services/internal/core/response"
 	res "github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/dtos/res"
 	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/repositories"
 )
 
 type AssetService interface {
-	GenerateUploadUrls(ctx context.Context, count int) (*res.GenerateUploadUrlsRes, *core.AppError)
-	CreateAsset(ctx context.Context, req interface{}) (*res.CreateAssetRes, *core.AppError)
-	ListAssets(ctx context.Context, limit int, cursor string) (*core.PaginatedResult[res.AssetRes], *core.AppError)
+	GenerateUploadUrls(ctx context.Context, count int) (*res.GenerateUploadUrlsRes, *response.AppError)
+	CreateAsset(ctx context.Context, req interface{}) (*res.CreateAssetRes, *response.AppError)
+	ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetRes], *response.AppError)
 }
 
 type assetService struct {
@@ -22,26 +22,26 @@ func NewAssetService(repo repositories.AssetRepository) AssetService {
 	return &assetService{repo: repo}
 }
 
-func (s *assetService) GenerateUploadUrls(ctx context.Context, count int) (*res.GenerateUploadUrlsRes, *core.AppError) {
-	return nil, core.Internal("not implemented")
+func (s *assetService) GenerateUploadUrls(ctx context.Context, count int) (*res.GenerateUploadUrlsRes, *response.AppError) {
+	return nil, response.Internal("not implemented")
 }
 
-func (s *assetService) CreateAsset(ctx context.Context, req interface{}) (*res.CreateAssetRes, *core.AppError) {
-	return nil, core.Internal("not implemented")
+func (s *assetService) CreateAsset(ctx context.Context, req interface{}) (*res.CreateAssetRes, *response.AppError) {
+	return nil, response.Internal("not implemented")
 }
 
-func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string) (*core.PaginatedResult[res.AssetRes], *core.AppError) {
+func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetRes], *response.AppError) {
 	if limit <= 0 {
 		limit = 20
 	}
 
-	items, lastKey, hasMore, err := s.repo.FindAll(ctx, limit, cursor)
+	result, err := s.repo.FindAll(ctx, limit, cursor)
 	if err != nil {
-		return nil, core.Internal("failed to fetch assets")
+		return nil, response.Internal("failed to fetch assets")
 	}
 
-	assets := make([]res.AssetRes, 0, len(items))
-	for _, item := range items {
+	assets := make([]res.AssetRes, 0, len(result.Data))
+	for _, item := range result.Data {
 		assets = append(assets, res.AssetRes{
 			AssetID:    item.PK,
 			Name:       item.Name,
@@ -52,8 +52,8 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 		})
 	}
 
-	return &core.PaginatedResult[res.AssetRes]{
+	return &response.PaginatedResult[res.AssetRes]{
 		Data: assets,
-		Meta: core.NewCursorMeta(limit, lastKey, hasMore),
+		Meta: result.Meta,
 	}, nil
 }

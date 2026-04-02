@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gianghp123/Vidmerce/backend/services/internal/core"
+	"github.com/gianghp123/Vidmerce/backend/services/internal/core/response"
 	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/dtos/req"
 	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/services"
 	"github.com/gin-gonic/gin"
@@ -21,33 +21,33 @@ func NewAssetController(svc services.AssetService) *AssetController {
 func (ctrl *AssetController) GenerateUploadUrls(c *gin.Context) {
 	var body req.GenerateUploadUrlsReq
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, core.Fail(core.BadRequest(err.Error())))
+		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest(err.Error())))
 		return
 	}
 
 	result, appErr := ctrl.svc.GenerateUploadUrls(c, body.Count)
 	if appErr != nil {
-		c.JSON(appErr.Code, core.Fail(appErr))
+		c.JSON(appErr.Code, response.Fail(appErr))
 		return
 	}
 
-	c.JSON(http.StatusOK, core.Success(result))
+	c.JSON(http.StatusOK, response.Success(result))
 }
 
 func (ctrl *AssetController) CreateAsset(c *gin.Context) {
 	var body req.CreateAssetReq
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, core.Fail(core.BadRequest(err.Error())))
+		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest(err.Error())))
 		return
 	}
 
 	result, appErr := ctrl.svc.CreateAsset(c, body)
 	if appErr != nil {
-		c.JSON(appErr.Code, core.Fail(appErr))
+		c.JSON(appErr.Code, response.Fail(appErr))
 		return
 	}
 
-	c.JSON(http.StatusCreated, core.Success(result))
+	c.JSON(http.StatusCreated, response.Success(result))
 }
 
 func (ctrl *AssetController) ListAssets(c *gin.Context) {
@@ -60,9 +60,9 @@ func (ctrl *AssetController) ListAssets(c *gin.Context) {
 
 	result, appErr := ctrl.svc.ListAssets(c, limit, cursor)
 	if appErr != nil {
-		c.JSON(appErr.Code, core.Fail(appErr))
+		c.JSON(appErr.Code, response.Fail(appErr))
 		return
 	}
 
-	c.JSON(http.StatusOK, core.SuccessWithMeta(result.Data, result.Meta))
+	c.JSON(http.StatusOK, response.SuccessWithMeta(result.Data, result.Meta))
 }

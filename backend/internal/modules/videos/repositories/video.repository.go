@@ -3,13 +3,18 @@ package repositories
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+
+	"github.com/gianghp123/Vidmerce/backend/services/internal/core"
+	"github.com/gianghp123/Vidmerce/backend/services/internal/core/response"
 	"github.com/gianghp123/Vidmerce/backend/services/internal/database/models"
 )
 
-// VideoRepository defines data access for videos
 type VideoRepository interface {
-	FindAll(ctx context.Context, limit int, lastKey string) ([]models.VideoMetadataEntity, string, bool, error)
+	FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.VideoMetadataEntity], error)
 	FindByID(ctx context.Context, id string) (*models.VideoMetadataEntity, error)
 	FindInteractiveByVideoID(ctx context.Context, videoID string) (*models.VideoInteractiveEntity, error)
 }
@@ -22,17 +27,105 @@ func NewVideoRepository(dbClient *dynamodb.Client) VideoRepository {
 	return &videoRepository{dbClient: dbClient}
 }
 
-func (r *videoRepository) FindAll(ctx context.Context, limit int, lastKey string) ([]models.VideoMetadataEntity, string, bool, error) {
-	// TODO: implement DynamoDB scan/query with cursor
-	return []models.VideoMetadataEntity{}, "", false, nil
+func (r *videoRepository) FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.VideoMetadataEntity], error) {
+	exclusiveStartKey, err := core.DecodeCursor(lastKey)
+	if err != nil {
+		return nil, err
+	}
+
+	keyCond := expression.Key("GSI1PK").Equal(expression.Value("ENTITY#VIDEO"))
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+	if err != nil {
+		return nil, err
+	}
+
+	input := &dynamodb.QueryInput{
+		TableName:                 aws.String(core.TableName),
+		IndexName:                 aws.String("GSI1"),
+		KeyConditionExpression:    expr.KeyCondition(),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		Limit:                     aws.Int32(int32(limit)),
+		ScanIndexForward:          aws.Bool(false),
+	}
+	if exclusiveStartKey != nil {
+		input.ExclusiveStartKey = exclusiveStartKey
+	}
+
+	resp, err := r.dbClient.Query(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []models.VideoMetadataEntity
+	if err := attributevalue.UnmarshalListOfMaps(resp.Items, &items); err != nil {
+		return nil, err
+	}
+
+	nextCursor, err := core.EncodeCursor(resp.LastEvaluatedKey)
+	if err != nil {
+		return nil, err
+	}
+
+	hasMore := resp.LastEvaluatedKey != nil
+	return &response.PaginatedResult[models.VideoMetadataEntity]{
+		Data: items,
+		Meta: response.NewCursorMeta(limit, nextCursor, hasMore),
+	}, nil
 }
 
 func (r *videoRepository) FindByID(ctx context.Context, id string) (*models.VideoMetadataEntity, error) {
-	// TODO: implement DynamoDB getItem
-	return nil, nil
+	key, err := attributevalue.MarshalMap(map[string]string{
+		"PK": "VIDEO#" + id,
+		"SK": "METADATA",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := r.dbClient.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(core.TableName),
+		Key:       key,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Item == nil {
+		return nil, nil
+	}
+
+	var item models.VideoMetadataEntity
+	if err := attributevalue.UnmarshalMap(resp.Item, &item); err != nil {
+		return nil, err
+	}
+	return &item, nil
 }
 
 func (r *videoRepository) FindInteractiveByVideoID(ctx context.Context, videoID string) (*models.VideoInteractiveEntity, error) {
-	// TODO: implement DynamoDB getItem for interactive data
-	return nil, nil
+	key, err := attributevalue.MarshalMap(map[string]string{
+		"PK": "VIDEO#" + videoID,
+		"SK": "INTERACTIVE",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := r.dbClient.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(core.TableName),
+		Key:       key,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Item == nil {
+		return nil, nil
+	}
+
+	var item models.VideoInteractiveEntity
+	if err := attributevalue.UnmarshalMap(resp.Item, &item); err != nil {
+		return nil, err
+	}
+	return &item, nil
 }

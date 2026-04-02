@@ -1,4 +1,4 @@
-package core
+package response
 
 // Meta is shared between layers (repo → service → handler)
 type Meta struct {

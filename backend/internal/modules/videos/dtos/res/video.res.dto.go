@@ -1,12 +1,14 @@
 package res
 
+import "github.com/gianghp123/Vidmerce/backend/services/internal/core/enums"
+
 type VideoResponse struct {
-	ID           string `json:"id"`
-	Title        string `json:"title"`
-	Status       string `json:"status"`
-	VideoURL     string `json:"video_url"`
-	ThumbnailURL string `json:"thumbnail_url"`
-	CreatedAt    string `json:"created_at"`
+	ID           string            `json:"id"`
+	Title        string            `json:"title"`
+	Status       enums.VideoStatus `json:"status"`
+	VideoURL     string            `json:"video_url"`
+	ThumbnailURL string            `json:"thumbnail_url"`
+	CreatedAt    string            `json:"created_at"`
 }
 
 type VideoDetailResponse struct {
@@ -29,7 +31,7 @@ type AssetSnapshotDTO struct {
 }
 
 type CreateVideoRes struct {
-	VideoID string `json:"videoId"`
-	Status  string `json:"status"`
-	Message string `json:"message"`
+	VideoID string            `json:"videoId"`
+	Status  enums.VideoStatus `json:"status"`
+	Message string            `json:"message"`
 }

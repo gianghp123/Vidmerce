@@ -1,4 +1,4 @@
-package core
+package response
 
 import (
 	"net/http"
