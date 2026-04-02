@@ -1,0 +1,377 @@
+openapi: '3.0.3'
+info:
+  title: Vidmerce API
+  description: API for interactive video commerce platform
+  version: '1.0'
+servers:
+  - url: https://api.server.test/v1
+
+paths:
+  /assets/upload-urls:
+    post:
+      summary: Generate presigned upload URLs
+      description: Generates short-lived S3 presigned URLs so the client can upload images directly
+      operationId: generateUploadUrls
+      tags:
+        - Assets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateUploadUrlsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/GenerateUploadUrlsResponse'
+
+  /assets:
+    post:
+      summary: Save asset metadata
+      description: Saves the metadata into DynamoDB after the client successfully uploads the image to S3
+      operationId: createAsset
+      tags:
+        - Assets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssetRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CreateAssetResponse'
+    get:
+      summary: List assets
+      description: Fetches a paginated list of available assets
+      operationId: listAssets
+      tags:
+        - Assets
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Asset'
+                  nextCursor:
+                    type: string
+                    nullable: true
+
+  /videos:
+    post:
+      summary: Create video
+      description: Accepts a composition configuration, saves to DB, and dispatches a job for the FFmpeg worker
+      operationId: createVideo
+      tags:
+        - Videos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVideoRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CreateVideoResponse'
+    get:
+      summary: List videos
+      description: Lists available interactive videos
+      operationId: listVideos
+      tags:
+        - Videos
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VideoSummary'
+                  nextCursor:
+                    type: string
+                    nullable: true
+
+  /videos/{id}:
+    get:
+      summary: Get video details
+      description: Returns the core video playback URL and the interactive overlay data
+      operationId: getVideo
+      tags:
+        - Videos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/VideoDetail'
+
+components:
+  schemas:
+    GenerateUploadUrlsRequest:
+      type: object
+      required:
+        - count
+      properties:
+        count:
+          type: integer
+
+    UploadUrl:
+      type: object
+      properties:
+        assetId:
+          type: string
+        fileKey:
+          type: string
+        uploadUrl:
+          type: string
+        expiresIn:
+          type: integer
+
+    GenerateUploadUrlsResponse:
+      type: object
+      properties:
+        assetId:
+          type: string
+        uploads:
+          type: array
+          items:
+            $ref: '#/components/schemas/UploadUrl'
+        maxAllowed:
+          type: integer
+        expiresIn:
+          type: integer
+
+    CreateAssetRequest:
+      type: object
+      required:
+        - assetId
+        - name
+        - price
+        - productUrl
+      properties:
+        assetId:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        productUrl:
+          type: string
+
+    CreateAssetResponse:
+      type: object
+      properties:
+        assetId:
+          type: string
+        status:
+          type: string
+          enum:
+            - DRAFT
+        imageUrl:
+          type: string
+
+    Asset:
+      type: object
+      properties:
+        assetId:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        imageUrl:
+          type: string
+        productUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    VideoItem:
+      type: object
+      required:
+        - assetId
+        - duration
+        - transition
+      properties:
+        assetId:
+          type: string
+        duration:
+          type: integer
+        transition:
+          type: string
+          enum:
+            - FADE
+            - SLIDE
+
+    CreateVideoRequest:
+      type: object
+      required:
+        - title
+        - style
+        - items
+      properties:
+        title:
+          type: string
+        style:
+          type: string
+          enum:
+            - KEN_BURNS
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/VideoItem'
+
+    CreateVideoResponse:
+      type: object
+      properties:
+        videoId:
+          type: string
+        status:
+          type: string
+          enum:
+            - PROCESSING
+        message:
+          type: string
+
+    Hotspot:
+      type: object
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+        width:
+          type: number
+        height:
+          type: number
+
+    AssetSnapshot:
+      type: object
+      properties:
+        assetId:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        imageUrl:
+          type: string
+        productUrl:
+          type: string
+
+    InteractiveLayer:
+      type: object
+      properties:
+        startTime:
+          type: number
+        endTime:
+          type: number
+        hotspot:
+          $ref: '#/components/schemas/Hotspot'
+        asset:
+          $ref: '#/components/schemas/AssetSnapshot'
+
+    VideoDetail:
+      type: object
+      properties:
+        videoId:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum:
+            - PROCESSING
+            - READY
+            - FAILED
+        videoUrl:
+          type: string
+        thumbnailUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        interactiveLayer:
+          type: array
+          items:
+            $ref: '#/components/schemas/InteractiveLayer'
+
+    VideoSummary:
+      type: object
+      properties:
+        videoId:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum:
+            - PROCESSING
+            - READY
+            - FAILED
+        thumbnailUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time

@@ -1,0 +1,23 @@
+dynamodb_table_configs:
+  MediaProjectTable:
+    hash_key: "PK"
+    range_key: "SK"
+    attributes:
+      - name: "PK"
+        type: "S"
+      - name: "SK"
+        type: "S"
+      - name: "GSI1PK"
+        type: "S"
+      - name: "GSI1SK"
+        type: "S"
+    global_secondary_index:
+      name: "GSI1"
+      key_schemas:
+        - attribute_name: "GSI1PK"
+          key_type: "HASH"
+        - attribute_name: "GSI1SK"
+          key_type: "RANGE"
+      projection_type: "ALL"
+    tags:
+      Name: "MediaProjectTable"
