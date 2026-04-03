@@ -5,5 +5,5 @@ variable "environment" {
 
 variable "project" {
   type = string
-  default = "Vidmerce"
+  default = "vidmerce"
 }
