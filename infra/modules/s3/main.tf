@@ -2,32 +2,24 @@ locals {
   files  = fileset(var.frontend_folder, "**")
 }
 
-resource "aws_s3_bucket" "static-hosting" {
-  bucket = "${var.project}-${var.environment}-static-hosting"
+resource "aws_s3_bucket" "buckets" {
+  for_each = {
+    static-hosting = "Static Hosting Bucket"
+    asset-storage  = "Asset Bucket"
+  }
+
+  bucket = "${var.project}-${var.environment}-${each.key}"
 
   tags = {
-    Name        = "Static Hosting Bucket"
+    Name        = each.value
     Environment = var.environment
   }
 }
-
-resource "aws_s3_bucket" "asset-storage" {
-  bucket = "${var.project}-${var.environment}-asset-storage"
-
-  tags = {
-    Name        = "Asset Bucket"
-    Environment = var.environment
-  }
-}
-
 
 resource "aws_s3_bucket_public_access_block" "bucket-policies" {
-  for_each = {
-    static = aws_s3_bucket.static-hosting.id
-    asset  = aws_s3_bucket.asset-storage.id
-  }
+  for_each = aws_s3_bucket.buckets
 
-  bucket = each.value
+  bucket = each.value.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -36,7 +28,7 @@ resource "aws_s3_bucket_public_access_block" "bucket-policies" {
 }
 
 resource "aws_s3_bucket_website_configuration" "cdn" {
-  bucket = aws_s3_bucket.static-hosting.id
+  bucket = aws_s3_bucket.buckets["static-hosting"].id
 
   index_document {
     suffix = "index.html"
@@ -51,7 +43,7 @@ resource "aws_s3_bucket_website_configuration" "cdn" {
 resource "aws_s3_object" "upload_files" {
   for_each = { for file in local.files: file => file}
 
-  bucket = aws_s3_bucket.static-hosting.id
+  bucket = aws_s3_bucket.buckets["static-hosting"].id
 
   key = each.key
 

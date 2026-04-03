@@ -11,10 +11,23 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = {
-      ENVIRONMENT = var.environment
+      LOCALSTACK_HOSTNAME = var.localstack_host
+      ENVIRONMENT         = var.environment
+      AWS_REGION          = var.region
+
+      # LẤY DỰA TRÊN BIẾN (DYNAMIC LOOKUP)
+      # each.value.s3_bucket_key sẽ là "assets" hoặc "videos" tùy theo lambda
+      S3_BUCKET_NAME = try(var.s3_buckets[each.value.s3_bucket_key])
+
+      # Tương tự cho DynamoDB
+      DYNAMODB_TABLE = try(
+        var.dynamodb_tables[each.value.db_table_key].name,
+        ""
+      )
+
+      CDN_URL = var.cdn_url
     }
   }
-
   tags = {
     Application = each.key
   }

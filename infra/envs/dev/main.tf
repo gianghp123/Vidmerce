@@ -37,4 +37,7 @@ module "lambda" {
   environment       = var.environment
   dynamodb_tables   = module.dynamodb.dynamodb_tables
   lambda_functions  = local.lambda_functions
+  s3_buckets = module.s3.s3_bucket_names
+  region = var.region
+  localstack_host = var.localstack_host
 }

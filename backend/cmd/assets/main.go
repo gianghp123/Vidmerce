@@ -21,15 +21,17 @@ var ginLambda *ginadapter.GinLambda
 func init() {
 	log.Printf("Gin cold start")
 
+	awsCfg := configs.LoadAWSConfig()
+
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-southeast-1"))
 	if err != nil {
 		log.Fatalf("Couldn't load default configuration. Have you set up your AWS account?: %v", err)
 	}
 
-	dbClient := dynamodb.NewFromConfig(sdkConfig)
+	dbClient := dynamodb.NewFromConfig(sdkConfig, awsCfg.DynamoDBOptions)
 
 	s3Config := configs.LoadS3Config()
-	s3Client := storage.NewS3Storage(s3.NewFromConfig(sdkConfig), s3Config.BucketName)
+	s3Client := storage.NewS3Storage(s3.NewFromConfig(sdkConfig, awsCfg.S3Options), s3Config.BucketName)
 
 	r := gin.Default()
 

@@ -4,9 +4,12 @@ lambda_functions:
     handler: bootstrap
     filename: functions/cmd/assets/function.zip
     runtime: provided.al2023
+    s3_bucket_key: asset-storage
+    db_table_key: MediaProjectTable
   videos:
     function_name: videos_lambda
     handler: bootstrap
     filename: functions/cmd/videos/function.zip
     runtime: provided.al2023
-  
+    s3_bucket_key: asset-storage
+    db_table_key: MediaProjectTable

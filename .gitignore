@@ -18,3 +18,5 @@ instruction.md
 
 *.zip
 bootstrap
+
+*.override.tf, *.override.tf.json
