@@ -10,7 +10,7 @@ import (
 )
 
 type VideoService interface {
-	CreateVideo(ctx context.Context, req interface{}) (*res.CreateVideoRes, *response.AppError)
+	CreateVideo(ctx context.Context, req req.CreateVideoReq) (*res.CreateVideoRes, *response.AppError)
 	ListVideos(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.VideoResponse], *response.AppError)
 	GetVideo(ctx context.Context, id string) (*res.VideoDetailResponse, *response.AppError)
 }
@@ -23,7 +23,7 @@ func NewVideoService(repo repositories.VideoRepository) VideoService {
 	return &videoService{repo: repo}
 }
 
-func (s *videoService) CreateVideo(ctx context.Context, req interface{}) (*res.CreateVideoRes, *response.AppError) {
+func (s *videoService) CreateVideo(ctx context.Context, req req.CreateVideoReq) (*res.CreateVideoRes, *response.AppError) {
 	return nil, response.Internal("not implemented")
 }
 

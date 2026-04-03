@@ -8,38 +8,35 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/services/internal/core/enums"
 	"github.com/gianghp123/Vidmerce/backend/services/internal/core/response"
 	"github.com/gianghp123/Vidmerce/backend/services/internal/database/models"
-	req "github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/dtos/req"
-	res "github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/dtos/res"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/repositories"
+	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/dtos/req"
+	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/dtos/res"
+	imageRepo "github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/repositories"
 	"github.com/gianghp123/Vidmerce/backend/services/internal/storage"
+	"github.com/gianghp123/Vidmerce/backend/services/internal/utils"
 	"github.com/google/uuid"
 )
 
-const MaxImagesPerAsset = 10
+const MaxImagesPerAsset = 5
 
 type AssetService interface {
-	CreateAsset(ctx context.Context, reqData interface{}) (*res.CreateAssetRes, *response.AppError)
+	CreateAsset(ctx context.Context, req req.CreateAssetReq) (*res.CreateAssetRes, *response.AppError)
 	ConfirmUpload(ctx context.Context, assetID string) (*res.ConfirmAssetRes, *response.AppError)
 	GetAsset(ctx context.Context, assetID string) (*res.AssetRes, *response.AppError)
 	ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetRes], *response.AppError)
 }
 
 type assetService struct {
-	repo    repositories.AssetRepository
-	storage storage.Storage
+	assetRepo imageRepo.AssetRepository
+	imageRepo imageRepo.ImageRepository
+	storage   storage.Storage
 }
 
-func NewAssetService(repo repositories.AssetRepository, storage storage.Storage) AssetService {
-	return &assetService{repo: repo, storage: storage}
+func NewAssetService(assetRepo imageRepo.AssetRepository, imageRepo imageRepo.ImageRepository, storage storage.Storage) AssetService {
+	return &assetService{assetRepo: assetRepo, imageRepo: imageRepo, storage: storage}
 }
 
-func (s *assetService) CreateAsset(ctx context.Context, reqData interface{}) (*res.CreateAssetRes, *response.AppError) {
-	createReq, ok := reqData.(req.CreateAssetReq)
-	if !ok {
-		return nil, response.BadRequest("invalid request body")
-	}
-
-	imageCount := createReq.ImageCount
+func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) (*res.CreateAssetRes, *response.AppError) {
+	imageCount := req.ImageCount
 	if imageCount <= 0 {
 		imageCount = 1
 	}
@@ -57,17 +54,12 @@ func (s *assetService) CreateAsset(ctx context.Context, reqData interface{}) (*r
 			GSI1PK: "ENTITY#ASSET",
 			GSI1SK: assetID,
 		},
-		Name:       createReq.Name,
-		Price:      createReq.Price,
-		ProductURL: createReq.ProductURL,
+		Name:       req.Name,
+		Price:      req.Price,
+		ProductURL: req.ProductURL,
 		Status:     enums.StatusAssetUploading,
 		ImageCount: imageCount,
 		CreatedAt:  now,
-	}
-
-	err := s.repo.Create(ctx, asset)
-	if err != nil {
-		return nil, response.Internal("failed to create asset")
 	}
 
 	uploads := make([]res.UploadInfo, 0, imageCount)
@@ -99,9 +91,14 @@ func (s *assetService) CreateAsset(ctx context.Context, reqData interface{}) (*r
 		})
 	}
 
-	err = s.repo.CreateImages(ctx, images)
+	err := s.imageRepo.Create(ctx, images)
 	if err != nil {
 		return nil, response.Internal("failed to create image records")
+	}
+
+	err = s.assetRepo.Create(ctx, asset)
+	if err != nil {
+		return nil, response.Internal("failed to create asset")
 	}
 
 	return &res.CreateAssetRes{
@@ -112,7 +109,7 @@ func (s *assetService) CreateAsset(ctx context.Context, reqData interface{}) (*r
 }
 
 func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.ConfirmAssetRes, *response.AppError) {
-	asset, err := s.repo.FindByID(ctx, assetID)
+	asset, err := s.assetRepo.FindByID(ctx, assetID)
 	if err != nil {
 		return nil, response.Internal("failed to find asset")
 	}
@@ -140,24 +137,21 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.
 			return nil, response.BadRequest(fmt.Sprintf("image %d/%d not uploaded", i, imageCount))
 		}
 
-		imageURL, err := s.storage.GeneratePresignedGetURL(ctx, fileKey, 24*time.Hour)
-		if err != nil {
-			return nil, response.Internal("failed to generate image URL")
-		}
+		imageUrl := utils.GetCDNURL(fileKey)
 
-		err = s.repo.UpdateImageStatus(ctx, assetID, i, string(enums.StatusImageCompleted), imageURL)
+		err = s.imageRepo.UpdateStatus(ctx, assetID, i, string(enums.StatusImageCompleted))
 		if err != nil {
 			return nil, response.Internal("failed to update image status")
 		}
 
 		images = append(images, res.ImageInfo{
-			ImageURL: imageURL,
+			ImageURL: imageUrl,
 			Order:    i,
 		})
 		uploadedCount++
 	}
 
-	err = s.repo.UpdateAssetStatus(ctx, assetID, string(enums.StatusAssetCompleted))
+	err = s.assetRepo.UpdateAssetStatus(ctx, assetID, string(enums.StatusAssetCompleted))
 	if err != nil {
 		return nil, response.Internal("failed to update asset status")
 	}
@@ -170,7 +164,7 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.
 }
 
 func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.AssetRes, *response.AppError) {
-	asset, err := s.repo.FindByID(ctx, assetID)
+	asset, err := s.assetRepo.FindByID(ctx, assetID)
 	if err != nil {
 		return nil, response.Internal("failed to find asset")
 	}
@@ -178,7 +172,7 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 		return nil, response.NotFound("asset not found")
 	}
 
-	images, err := s.repo.FindImagesByAssetID(ctx, assetID)
+	images, err := s.imageRepo.FindByAssetID(ctx, assetID)
 	if err != nil {
 		return nil, response.Internal("failed to find images")
 	}
@@ -186,8 +180,9 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 	imageInfos := make([]res.ImageInfo, 0, len(images))
 	for _, img := range images {
 		if img.Status == enums.StatusImageCompleted {
+			imageURL := utils.GetCDNURL(img.FileKey)
 			imageInfos = append(imageInfos, res.ImageInfo{
-				ImageURL: img.ImageURL,
+				ImageURL: imageURL,
 				Order:    img.Order,
 			})
 		}
@@ -214,7 +209,7 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 		limit = 20
 	}
 
-	result, err := s.repo.FindAll(ctx, limit, cursor)
+	result, err := s.assetRepo.FindAll(ctx, limit, cursor)
 	if err != nil {
 		return nil, response.Internal("failed to fetch assets")
 	}
@@ -226,7 +221,7 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 			assetID = assetID[7:]
 		}
 
-		images, err := s.repo.FindImagesByAssetID(ctx, assetID)
+		images, err := s.imageRepo.FindByAssetID(ctx, assetID)
 		if err != nil {
 			continue
 		}
@@ -234,8 +229,9 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 		var imageInfos []res.ImageInfo
 		for _, img := range images {
 			if img.Status == enums.StatusImageCompleted && img.Order == 1 {
+				imageURL := utils.GetCDNURL(img.FileKey)
 				imageInfos = append(imageInfos, res.ImageInfo{
-					ImageURL: img.ImageURL,
+					ImageURL: imageURL,
 					Order:    img.Order,
 				})
 				break

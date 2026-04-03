@@ -6,10 +6,12 @@ import (
 
 type S3Config struct {
 	BucketName string
+	CDNURL     string
 }
 
 func LoadS3Config() *S3Config {
 	return &S3Config{
 		BucketName: os.Getenv("S3_BUCKET_NAME"),
+		CDNURL:     os.Getenv("CDN_URL"),
 	}
 }

@@ -9,8 +9,9 @@ import (
 )
 
 func RegisterRoutes(r *gin.RouterGroup, dbClient *dynamodb.Client, store storage.Storage) {
-	repo := repositories.NewAssetRepository(dbClient)
-	svc := services.NewAssetService(repo, store)
+	assetRepo := repositories.NewAssetRepository(dbClient)
+	imageRepo := repositories.NewImageRepository(dbClient)
+	svc := services.NewAssetService(assetRepo, imageRepo, store)
 	ctrl := NewAssetController(svc)
 
 	group := r.Group("/assets")

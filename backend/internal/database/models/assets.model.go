@@ -16,8 +16,7 @@ type AssetEntity struct {
 type ImageEntity struct {
 	BaseItem
 
-	FileKey  string            `dynamodbav:"fileKey"`
-	ImageURL string            `dynamodbav:"imageUrl"`
-	Status   enums.ImageStatus `dynamodbav:"status"`
-	Order    int               `dynamodbav:"order"`
+	FileKey string            `dynamodbav:"fileKey"`
+	Status  enums.ImageStatus `dynamodbav:"status"`
+	Order   int               `dynamodbav:"order"`
 }
