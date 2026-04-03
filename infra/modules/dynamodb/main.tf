@@ -6,7 +6,7 @@ resource "aws_dynamodb_table" "dynamodb-tables" {
 
   hash_key  = each.value.hash_key
   range_key = try(each.value.range_key, null)
-
+  
   # Attributes
   dynamic "attribute" {
     for_each = each.value.attributes

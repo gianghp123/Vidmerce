@@ -15,3 +15,6 @@ venv
 AGENTS.md
 instruction.md
 .kilo
+
+*.zip
+bootstrap
