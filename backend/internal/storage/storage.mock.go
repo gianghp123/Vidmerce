@@ -24,3 +24,8 @@ func (m *MockStorage) GeneratePresignedGetURL(ctx context.Context, key string, e
 	args := m.Called(ctx, key, expire)
 	return args.String(0), args.Error(1)
 }
+
+func (m *MockStorage) ObjectExists(ctx context.Context, key string) (bool, error) {
+	args := m.Called(ctx, key)
+	return args.Bool(0), args.Error(1)
+}

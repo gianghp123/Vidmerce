@@ -15,8 +15,9 @@ func RegisterRoutes(r *gin.RouterGroup, dbClient *dynamodb.Client, store storage
 
 	group := r.Group("/assets")
 	{
-		group.POST("/upload-urls", ctrl.GenerateUploadUrls)
 		group.POST("", ctrl.CreateAsset)
+		group.POST("/:id/confirm", ctrl.ConfirmUpload)
+		group.GET("/:id", ctrl.GetAsset)
 		group.GET("", ctrl.ListAssets)
 	}
 }

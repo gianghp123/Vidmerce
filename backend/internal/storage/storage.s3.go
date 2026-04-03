@@ -52,3 +52,14 @@ func (s *s3Storage) GeneratePresignedGetURL(ctx context.Context, key string, exp
 
 	return req.URL, nil
 }
+
+func (s *s3Storage) ObjectExists(ctx context.Context, key string) (bool, error) {
+	_, err := s.client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}

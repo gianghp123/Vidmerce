@@ -1,10 +1,10 @@
 package req
 
 type CreateAssetReq struct {
-	AssetID    string  `json:"assetId" binding:"required"`
 	Name       string  `json:"name" binding:"required"`
 	Price      float64 `json:"price" binding:"required,gt=0"`
 	ProductURL string  `json:"productUrl" binding:"required,url"`
+	ImageCount int     `json:"imageCount" binding:"min=1,max=10"`
 }
 
 type ListAssetsQuery struct {

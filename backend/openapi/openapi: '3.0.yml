@@ -7,34 +7,10 @@ servers:
   - url: https://api.server.test/v1
 
 paths:
-  /assets/upload-urls:
-    post:
-      summary: Generate presigned upload URLs
-      description: Generates short-lived S3 presigned URLs so the client can upload images directly
-      operationId: generateUploadUrls
-      tags:
-        - Assets
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenerateUploadUrlsRequest'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    $ref: '#/components/schemas/GenerateUploadUrlsResponse'
-
   /assets:
     post:
-      summary: Save asset metadata
-      description: Saves the metadata into DynamoDB after the client successfully uploads the image to S3
+      summary: Create asset and get upload URLs
+      description: Creates an asset record with UPLOADING status and returns presigned S3 upload URLs for multiple images
       operationId: createAsset
       tags:
         - Assets
@@ -85,6 +61,54 @@ paths:
                   nextCursor:
                     type: string
                     nullable: true
+
+  /assets/{id}:
+    get:
+      summary: Get asset details
+      description: Returns asset metadata and all images
+      operationId: getAsset
+      tags:
+        - Assets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Asset'
+
+  /assets/{id}/confirm:
+    post:
+      summary: Confirm asset upload
+      description: Verifies all images were uploaded to S3 and marks asset as COMPLETED
+      operationId: confirmAssetUpload
+      tags:
+        - Assets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ConfirmAssetResponse'
 
   /videos:
     post:
@@ -167,56 +191,44 @@ paths:
 
 components:
   schemas:
-    GenerateUploadUrlsRequest:
-      type: object
-      required:
-        - count
-      properties:
-        count:
-          type: integer
-
-    UploadUrl:
+    UploadInfo:
       type: object
       properties:
-        assetId:
-          type: string
         fileKey:
           type: string
         uploadUrl:
           type: string
+        order:
+          type: integer
         expiresIn:
           type: integer
 
-    GenerateUploadUrlsResponse:
+    ImageInfo:
       type: object
       properties:
-        assetId:
+        imageUrl:
           type: string
-        uploads:
-          type: array
-          items:
-            $ref: '#/components/schemas/UploadUrl'
-        maxAllowed:
-          type: integer
-        expiresIn:
+        order:
           type: integer
 
     CreateAssetRequest:
       type: object
       required:
-        - assetId
         - name
         - price
         - productUrl
       properties:
-        assetId:
-          type: string
         name:
           type: string
         price:
           type: number
         productUrl:
           type: string
+        imageCount:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 1
 
     CreateAssetResponse:
       type: object
@@ -226,9 +238,25 @@ components:
         status:
           type: string
           enum:
-            - DRAFT
-        imageUrl:
+            - UPLOADING
+        uploads:
+          type: array
+          items:
+            $ref: '#/components/schemas/UploadInfo'
+
+    ConfirmAssetResponse:
+      type: object
+      properties:
+        assetId:
           type: string
+        status:
+          type: string
+          enum:
+            - COMPLETED
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageInfo'
 
     Asset:
       type: object
@@ -239,10 +267,17 @@ components:
           type: string
         price:
           type: number
-        imageUrl:
-          type: string
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageInfo'
         productUrl:
           type: string
+        status:
+          type: string
+          enum: 
+            - UPLOADING
+            - COMPLETED
         createdAt:
           type: string
           format: date-time
