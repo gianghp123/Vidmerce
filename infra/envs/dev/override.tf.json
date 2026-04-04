@@ -1,6 +1,8 @@
 {
 "variable": {
-"localstack_host": { "default": "localhost" }
+"localstack_host": { "default": "localhost" },
+"is_local": { "default": true },
+"localstack_port": { "default": "4566" }
 },
 "provider": {
 "aws": {

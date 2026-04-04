@@ -40,4 +40,13 @@ module "lambda" {
   s3_buckets = module.s3.s3_bucket_names
   region = var.region
   localstack_host = var.localstack_host
+  localstack_port = var.localstack_port
+}
+
+module "api_gateway" {
+  source = "../../modules/api-gateway"
+  project = var.project
+  environment = var.environment
+  lambda_functions = module.lambda.lambda_functions
+  count = var.is_local ? 0 : 1
 }

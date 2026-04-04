@@ -43,3 +43,7 @@ variable "region" {
 variable "localstack_host" {
   type = string
 }
+
+variable "localstack_port" {
+  type = string
+}

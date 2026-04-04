@@ -12,7 +12,7 @@ LOCALSTACK_HOST = localhost
 LOCALSTACK_PORT = 4566
 LOCALSTACK_URL  = http://$(LOCALSTACK_HOST):$(LOCALSTACK_PORT)
 S3_ENDPOINT     = http://s3.localhost.localstack.cloud:$(LOCALSTACK_PORT)
-
+# S3_ENDPOINT     = http://$(LOCALSTACK_HOST):$(LOCALSTACK_PORT)
 # --- Terraform Settings ---
 TF_CMD          = terraform
 TF_FLAGS        ?=
@@ -30,10 +30,13 @@ endif
 
 # Sử dụng printf để định dạng JSON sạch sẽ và dễ đọc hơn
 setup-local:
+	@localstack start -e SERVICES=s3,dynamodb,lambda,iam -d
 	@cat > $(LOCAL_OVERRIDE) <<'EOF'
 	{
 	  "variable": {
-	    "localstack_host": { "default": "localhost" }
+	    "localstack_host": { "default": "localhost" },
+			"is_local": { "default": true },
+			"localstack_port": { "default": "4566" }
 	  },
 	  "provider": {
 	    "aws": {
@@ -48,6 +51,7 @@ setup-local:
 	        "s3":       "$(S3_ENDPOINT)",
 	        "iam":      "$(LOCALSTACK_URL)",
 	        "sts":      "$(LOCALSTACK_URL)"
+# 					"apigatewayv2": "$(LOCALSTACK_URL)"
 	      }
 	    }
 	  }
@@ -56,6 +60,7 @@ setup-local:
 	@echo "--- [LOCAL] LocalStack override created at $(LOCAL_OVERRIDE) ---"
 
 setup-cloud:
+	@localstack stop
 	@rm -f $(LOCAL_OVERRIDE)
 	@echo "--- [CLOUD] LocalStack override removed. Ready for Real AWS. ---"
 
@@ -79,23 +84,31 @@ deploy-local: setup-local build
 	@echo "--- Deploying to LocalStack ([$(ENV)] config) ---"
 	cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
-destroy: setup-cloud
+destroy: 
 	cd $(TERRAFORM_PATH) && $(TF_CMD) destroy -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
-destroy-local: setup-local
-	cd $(TERRAFORM_PATH) && $(TF_CMD) destroy -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
+
+destroy-local:
+	@$(MAKE) setup-local
+	@cd $(TERRAFORM_PATH) && $(TF_CMD) destroy -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
+	@$(MAKE) setup-cloud
 
 # --- Test ---
 
-LAMBDA_NAME ?= my-lambda-function
-
+LAMBDA_NAME ?= vidmerce-development-assets_lambda
 test-lambda-local:
-	@echo "--- Invoking Lambda: $(LAMBDA_NAME) on $(LOCALSTACK_URL) ---"
+	@echo "--- Invoking Lambda: $(LAMBDA_NAME) ---"
 	aws --endpoint-url=$(LOCALSTACK_URL) lambda invoke \
 		--function-name $(LAMBDA_NAME) \
-		--payload '{"test": "data"}' \
+		--payload '{
+			"path": "/api/assets",
+			"httpMethod": "GET",
+			"headers": {
+				"Content-Type": "application/json"
+			}
+		}' \
 		--cli-binary-format raw-in-base64-out \
 		response.json
 	@echo "--- Response ---"
-	@cat response.json
+	@cat response.json | jq
 	@rm response.json

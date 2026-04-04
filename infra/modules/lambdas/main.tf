@@ -12,14 +12,13 @@ resource "aws_lambda_function" "this" {
   environment {
     variables = {
       LOCALSTACK_HOSTNAME = var.localstack_host
+      AWS_ENDPOINT_URL = "http://localstack:${var.localstack_port}"
+      LOCALSTACK_PORT     = var.localstack_port
       ENVIRONMENT         = var.environment
       AWS_REGION          = var.region
 
-      # LẤY DỰA TRÊN BIẾN (DYNAMIC LOOKUP)
-      # each.value.s3_bucket_key sẽ là "assets" hoặc "videos" tùy theo lambda
       S3_BUCKET_NAME = try(var.s3_buckets[each.value.s3_bucket_key])
 
-      # Tương tự cho DynamoDB
       DYNAMODB_TABLE = try(
         var.dynamodb_tables[each.value.db_table_key].name,
         ""

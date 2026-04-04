@@ -211,7 +211,7 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 
 	result, err := s.assetRepo.FindAll(ctx, limit, cursor)
 	if err != nil {
-		return nil, response.Internal("failed to fetch assets")
+		return nil, response.Internal("failed to fetch assets: " + err.Error())
 	}
 
 	assets := make([]res.AssetRes, 0, len(result.Data))

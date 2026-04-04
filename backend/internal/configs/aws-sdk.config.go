@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -22,12 +21,17 @@ func LoadAWSConfig() *AWSConfig {
 	}
 
 	lsHost := os.Getenv("LOCALSTACK_HOSTNAME")
+
+	if lsHost == "" {
+		lsHost = "4566"
+	}
+
 	var endpoint *string
 	isLocal := false
 
 	if lsHost != "" {
 		isLocal = true
-		addr := fmt.Sprintf("http://%s:4566", lsHost)
+		addr := os.Getenv("AWS_ENTPOIN_URL")
 		endpoint = aws.String(addr)
 	}
 
