@@ -31,7 +31,7 @@ func LoadAWSConfig() *AWSConfig {
 
 	if lsHost != "" {
 		isLocal = true
-		addr := os.Getenv("AWS_ENTPOIN_URL")
+		addr := os.Getenv("AWS_ENDPOINT_URL")
 		endpoint = aws.String(addr)
 	}
 
