@@ -5,11 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/gianghp123/Vidmerce/backend/services/internal/core/enums"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/core/response"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/database/models"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/videos/dtos/req"
-	repoMocks "github.com/gianghp123/Vidmerce/backend/services/internal/modules/videos/repositories"
+	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
+	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
+	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/videos/dtos/req"
+	repoMocks "github.com/gianghp123/Vidmerce/backend/internal/modules/videos/repositories"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/gianghp123/Vidmerce/backend/services/internal/configs"
+	"github.com/gianghp123/Vidmerce/backend/internal/configs"
 )
 
 func GetCDNURL(fileKey string) string {

@@ -2,8 +2,8 @@ package videos
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/videos/repositories"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/videos/services"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/videos/repositories"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/videos/services"
 	"github.com/gin-gonic/gin"
 )
 

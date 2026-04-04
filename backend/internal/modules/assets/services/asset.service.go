@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gianghp123/Vidmerce/backend/services/internal/core/enums"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/core/response"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/database/models"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/dtos/req"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/dtos/res"
-	imageRepo "github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/repositories"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/storage"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/utils"
+	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
+	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
+	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets/dtos/req"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets/dtos/res"
+	imageRepo "github.com/gianghp123/Vidmerce/backend/internal/modules/assets/repositories"
+	"github.com/gianghp123/Vidmerce/backend/internal/storage"
+	"github.com/gianghp123/Vidmerce/backend/internal/utils"
 	"github.com/google/uuid"
 )
 

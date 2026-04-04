@@ -1,0 +1,428 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "This is the Vidmerce Videos API",
+        "title": "Swagger Videos API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:3000",
+    "basePath": "/api",
+    "paths": {
+        "/videos": {
+            "get": {
+                "description": "Get a paginated list of videos",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "videos"
+                ],
+                "summary": "List videos",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination cursor (last video ID) for next page",
+                        "name": "last_key",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_VideoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a video by combining multiple assets with transitions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "videos"
+                ],
+                "summary": "Create a new video",
+                "parameters": [
+                    {
+                        "description": "Create video request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_req.CreateVideoReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_CreateVideoRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/videos/{id}": {
+            "get": {
+                "description": "Retrieve detailed information about a specific video including hotspots",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "videos"
+                ],
+                "summary": "Get video by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Video ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_VideoDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_gianghp123_Vidmerce_backend_internal_core_enums.VideoStatus": {
+            "type": "string",
+            "enum": [
+                "PENDING",
+                "PROCESSING",
+                "COMPLETED",
+                "FAILED"
+            ],
+            "x-enum-varnames": [
+                "StatusPending",
+                "StatusProcessing",
+                "StatusCompleted",
+                "StatusFailed"
+            ]
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_VideoResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.VideoResponse"
+                    }
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_CreateVideoRes": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.CreateVideoRes"
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_VideoDetailResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.VideoDetailResponse"
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta": {
+            "type": "object",
+            "properties": {
+                "has_more": {
+                    "type": "boolean"
+                },
+                "last_key": {
+                    "description": "Cursor-style (DynamoDB, etc.)"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "description": "SQL-style pagination",
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_req.CreateVideoReq": {
+            "type": "object",
+            "required": [
+                "items",
+                "style",
+                "title"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_req.VideoItemReq"
+                    }
+                },
+                "style": {
+                    "type": "string",
+                    "enum": [
+                        "KEN_BURNS"
+                    ]
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_req.VideoItemReq": {
+            "type": "object",
+            "required": [
+                "assetId",
+                "duration",
+                "transition"
+            ],
+            "properties": {
+                "assetId": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "transition": {
+                    "type": "string",
+                    "enum": [
+                        "FADE",
+                        "SLIDE"
+                    ]
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.AssetSnapshotDTO": {
+            "type": "object",
+            "properties": {
+                "asset_id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "product_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.CreateVideoRes": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_enums.VideoStatus"
+                },
+                "videoId": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.HotspotResponse": {
+            "type": "object",
+            "properties": {
+                "asset": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.AssetSnapshotDTO"
+                },
+                "x": {
+                    "type": "number"
+                },
+                "y": {
+                    "type": "number"
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.VideoDetailResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "hotspots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.HotspotResponse"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_enums.VideoStatus"
+                },
+                "thumbnail_url": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "video_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.VideoResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_enums.VideoStatus"
+                },
+                "thumbnail_url": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "video_url": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

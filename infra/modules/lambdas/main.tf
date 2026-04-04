@@ -11,11 +11,7 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = {
-      LOCALSTACK_HOSTNAME = var.localstack_host
-      AWS_ENDPOINT_URL = "http://localhost.localstack.cloud:${var.localstack_port}"
-      LOCALSTACK_PORT     = var.localstack_port
       ENVIRONMENT         = var.environment
-      AWS_REGION          = var.region
 
       S3_BUCKET_NAME = try(var.s3_buckets[each.value.s3_bucket_key])
 

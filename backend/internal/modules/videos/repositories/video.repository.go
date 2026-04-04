@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 
-	"github.com/gianghp123/Vidmerce/backend/services/internal/core"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/core/response"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/database/models"
+	"github.com/gianghp123/Vidmerce/backend/internal/core"
+	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
+	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
 )
 
 type VideoRepository interface {

@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 
-	"github.com/gianghp123/Vidmerce/backend/services/internal/core/response"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/videos/dtos/req"
-	res "github.com/gianghp123/Vidmerce/backend/services/internal/modules/videos/dtos/res"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/videos/repositories"
+	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/videos/dtos/req"
+	res "github.com/gianghp123/Vidmerce/backend/internal/modules/videos/dtos/res"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/videos/repositories"
 )
 
 type VideoService interface {

@@ -2,9 +2,9 @@ package assets
 
 import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/repositories"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/modules/assets/services"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/storage"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets/repositories"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets/services"
+	"github.com/gianghp123/Vidmerce/backend/internal/storage"
 	"github.com/gin-gonic/gin"
 )
 

@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
-	"github.com/gianghp123/Vidmerce/backend/services/internal/core"
-	"github.com/gianghp123/Vidmerce/backend/services/internal/database/models"
+	"github.com/gianghp123/Vidmerce/backend/internal/core"
+	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
 )
 
 type ImageRepository interface {

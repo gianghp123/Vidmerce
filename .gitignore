@@ -20,3 +20,4 @@ instruction.md
 bootstrap
 
 *.override.tf, *.override.tf.json
+*.sh

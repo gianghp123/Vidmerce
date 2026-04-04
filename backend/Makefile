@@ -26,3 +26,8 @@ zip:
 clean:
 	@echo "Cleaning..."
 	rm -rf $(DIST_DIR)
+
+
+swag-init:
+	@swag init -g cmd/assets/main.go -d . -o ./cmd/assets/docs --exclude "internal/modules/videos" --parseDependency --parseInternal
+	@swag init -g cmd/videos/main.go -d . -o ./cmd/videos/docs --exclude "internal/modules/assets" --parseDependency --parseInternal

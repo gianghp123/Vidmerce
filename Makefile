@@ -34,9 +34,7 @@ setup-local:
 	@cat > $(LOCAL_OVERRIDE) <<'EOF'
 	{
 	  "variable": {
-	    "localstack_host": { "default": "localhost" },
-			"is_local": { "default": true },
-			"localstack_port": { "default": "4566" }
+			"is_local": { "default": true }
 	  },
 	  "provider": {
 	    "aws": {
@@ -80,7 +78,7 @@ deploy: setup-cloud build
 	@echo "--- Deploying to [$(ENV)] ---"
 	cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
-deploy-local: setup-local build
+deploy-local: setup-local
 	@echo "--- Deploying to LocalStack ([$(ENV)] config) ---"
 	cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
@@ -92,23 +90,3 @@ destroy-local:
 	@$(MAKE) setup-local
 	@cd $(TERRAFORM_PATH) && $(TF_CMD) destroy -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 	@$(MAKE) setup-cloud
-
-# --- Test ---
-
-LAMBDA_NAME ?= vidmerce-development-assets_lambda
-test-lambda-local:
-	@echo "--- Invoking Lambda: $(LAMBDA_NAME) ---"
-	aws --endpoint-url=$(LOCALSTACK_URL) lambda invoke \
-		--function-name $(LAMBDA_NAME) \
-		--payload '{
-			"path": "/api/assets",
-			"httpMethod": "GET",
-			"headers": {
-				"Content-Type": "application/json"
-			}
-		}' \
-		--cli-binary-format raw-in-base64-out \
-		response.json
-	@echo "--- Response ---"
-	@cat response.json | jq
-	@rm response.json

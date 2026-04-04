@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	"github.com/gianghp123/Vidmerce/backend/services/internal/database/models"
+	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
 	"github.com/stretchr/testify/mock"
 )
 

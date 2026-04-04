@@ -39,8 +39,7 @@ module "lambda" {
   lambda_functions  = local.lambda_functions
   s3_buckets = module.s3.s3_bucket_names
   region = var.region
-  localstack_host = var.localstack_host
-  localstack_port = var.localstack_port
+  count = var.is_local ? 0 : 1
 }
 
 module "api_gateway" {

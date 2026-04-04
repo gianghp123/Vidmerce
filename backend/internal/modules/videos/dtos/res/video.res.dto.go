@@ -1,6 +1,6 @@
 package res
 
-import "github.com/gianghp123/Vidmerce/backend/services/internal/core/enums"
+import "github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 
 type VideoResponse struct {
 	ID           string            `json:"id"`

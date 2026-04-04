@@ -7,11 +7,9 @@ resource "aws_apigatewayv2_integration" "asset_lambda" {
   integration_type = "AWS_PROXY"
 
   connection_type           = "INTERNET"
-  content_handling_strategy = "CONVERT_TO_TEXT"
   description               = "Asset service"
-  integration_method        = "ANY"
+  integration_method        = "POST"
   integration_uri           = try(var.lambda_functions["assets"].invoke_arn)
-  passthrough_behavior      = "WHEN_NO_MATCH"
 }
 
 
@@ -30,7 +28,7 @@ resource "aws_apigatewayv2_integration" "video_lambda" {
   connection_type           = "INTERNET"
   content_handling_strategy = "CONVERT_TO_TEXT"
   description               = "Asset service"
-  integration_method        = "ANY"
+  integration_method        = "POST"
   integration_uri           = try(var.lambda_functions["videos"].invoke_arn)
   passthrough_behavior      = "WHEN_NO_MATCH"
 }

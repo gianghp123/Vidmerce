@@ -39,11 +39,3 @@ variable "cdn_url" {
 variable "region" {
   type = string
 }
-
-variable "localstack_host" {
-  type = string
-}
-
-variable "localstack_port" {
-  type = string
-}
