@@ -61,8 +61,8 @@ func main() {
 		// The docs.SwaggerInfo is already properly set by swag init
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		// Run as a standard HTTP server locally
-		log.Printf("Running in LOCAL SERVER mode on :3000")
-		if err := router.Run(":3000"); err != nil {
+		log.Printf("Running in LOCAL SERVER mode on http://localhost:3001")
+		if err := router.Run(":3001"); err != nil {
 			log.Fatalf("Failed to run local server: %v", err)
 		}
 	} else {
@@ -85,6 +85,6 @@ func main() {
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      localhost:3000
+// @host      localhost:3001
 // @BasePath  /api
 // @schemes   http

@@ -92,7 +92,7 @@ func main() {
 			MaxAge:           12 * time.Hour,
 		}))
 		// Run as a standard HTTP server locally
-		log.Printf("Running in LOCAL SERVER mode on :3000")
+		log.Printf("Running in LOCAL SERVER mode on http://localhost:3000")
 		if err := router.Run(":3000"); err != nil {
 			log.Fatalf("Failed to run local server: %v", err)
 		}

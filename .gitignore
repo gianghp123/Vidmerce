@@ -21,3 +21,5 @@ bootstrap
 
 *.override.tf, *.override.tf.json
 *.sh
+
+tmp

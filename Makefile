@@ -30,7 +30,7 @@ endif
 
 # Sử dụng printf để định dạng JSON sạch sẽ và dễ đọc hơn
 setup-local:
-	@localstack start -e SERVICES=s3,dynamodb,lambda,iam -d
+	@PERSISTENCE=1 localstack start -e SERVICES=s3,dynamodb,lambda,iam -d
 	@cat > $(LOCAL_OVERRIDE) <<'EOF'
 	{
 	  "variable": {

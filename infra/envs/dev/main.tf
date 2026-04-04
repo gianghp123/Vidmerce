@@ -46,6 +46,6 @@ module "api_gateway" {
   source = "../../modules/api-gateway"
   project = var.project
   environment = var.environment
-  lambda_functions = module.lambda.lambda_functions
+  lambda_functions = module.lambda[0].lambda_functions
   count = var.is_local ? 0 : 1
 }
