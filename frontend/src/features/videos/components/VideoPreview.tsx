@@ -5,11 +5,11 @@ interface VideoPreviewProps {
   sequences: SequenceItem[];
 }
 
-export function VideoPreview({ sequences }: VideoPreviewProps) {
+export function VideoPreview({  }: VideoPreviewProps) {
   return (
-    <div className="relative aspect-[9/16] bg-black rounded-[32px] overflow-hidden shadow-2xl ring-8 ring-on-surface/5">
+    <div className="relative aspect-9/16 bg-black rounded-[32px] overflow-hidden shadow-2xl ring-8 ring-on-surface/5">
       {/* Placeholder for video content */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent z-10" />
 
       <div className="absolute inset-0 flex items-center justify-center z-20">
         <div className="w-16 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/30 cursor-pointer">

@@ -3,6 +3,7 @@ SHELL := /bin/bash
 # --- Configuration ---
 ENV             ?= dev
 BACKEND_DIR     = backend
+FRONTEND_DIR		= frontend
 TERRAFORM_PATH  = infra/envs/$(ENV)
 LOCAL_OVERRIDE  = $(TERRAFORM_PATH)/override.tf.json
 
@@ -68,6 +69,9 @@ build:
 	@echo "--- Building Backend for $(ENV) ---"
 	cd $(BACKEND_DIR) && $(MAKE)
 
+	@echo "--- Building Frontend for $(ENV) ---"
+	cd ../$(FRONTEND_DIR) && npm run build
+
 clean:
 	cd $(BACKEND_DIR) && $(MAKE) clean
 
@@ -78,7 +82,7 @@ deploy: setup-cloud build
 	@echo "--- Deploying to [$(ENV)] ---"
 	cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
-deploy-local: setup-local
+deploy-local: setup-local build
 	@echo "--- Deploying to LocalStack ([$(ENV)] config) ---"
 	cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 

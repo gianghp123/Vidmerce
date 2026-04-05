@@ -1,7 +1,6 @@
+import { HelpCircle, Package, Settings, Video } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Package, Video, Settings, HelpCircle, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface MainLayoutProps {
   children: ReactNode;

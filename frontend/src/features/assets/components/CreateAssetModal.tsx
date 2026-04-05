@@ -170,7 +170,7 @@ export function CreateAssetModal({
               value={images}
               onChange={setImages}
               maxFiles={10}
-              className="border-dashed border-2 border-outline-variant/50 rounded-xl bg-transparent min-h-[220px]"
+              className="border-dashed border-2 border-outline-variant/50 rounded-xl bg-transparent min-h-55"
             />
           </div>
 

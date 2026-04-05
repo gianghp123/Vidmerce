@@ -1,7 +1,6 @@
 import type { AssetUploadResponse, AssetConfirmResponse } from "../models/asset.model";
 import type { BaseResponse } from "@/lib/base.model";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api/v1";
+import { apiFetch } from "@/lib/api-fetch";
 
 export interface CreateAssetPayload {
   name: string;
@@ -13,19 +12,13 @@ export interface CreateAssetPayload {
 export async function createAssetGetUploadUrl(
   payload: CreateAssetPayload
 ): Promise<BaseResponse<AssetUploadResponse>> {
-  const response = await fetch(`${API_BASE_URL}/assets/upload-url`, {
+  return apiFetch<AssetUploadResponse>("/assets/upload-url", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
-
-  if (!response.ok) {
-    throw new Error(`Failed to get upload URL: ${response.statusText}`);
-  }
-
-  return response.json();
 }
 
 export async function uploadImageToS3(
@@ -48,13 +41,7 @@ export async function uploadImageToS3(
 export async function confirmAssetUpload(
   assetId: string
 ): Promise<BaseResponse<AssetConfirmResponse>> {
-  const response = await fetch(`${API_BASE_URL}/assets/${assetId}/confirm`, {
+  return apiFetch<AssetConfirmResponse>(`/assets/${assetId}/confirm`, {
     method: "POST",
   });
-
-  if (!response.ok) {
-    throw new Error(`Failed to confirm asset upload: ${response.statusText}`);
-  }
-
-  return response.json();
 }

@@ -27,7 +27,7 @@ module "s3" {
 
   project          = var.project
   environment      = var.environment
-  frontend_folder  = "${path.module}/../../../frontend"
+  frontend_folder  = "${path.module}/../../../frontend/dist"
 }
 
 module "lambda" {

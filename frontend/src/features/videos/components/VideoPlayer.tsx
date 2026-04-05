@@ -30,7 +30,7 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
         <Hotspot key={index} hotspot={hotspot} />
       ))}
       
-      <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-between">
+      <div className="absolute bottom-0 left-0 right-0 p-8 bg-linear-to-t from-black/60 to-transparent flex items-center justify-between">
         <div className="flex items-center gap-6 text-white">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
