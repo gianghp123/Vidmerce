@@ -6,9 +6,9 @@ import {
   PaginationLink,
 } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
-interface PaginationProps {
+export interface PaginationProps {
   currentPage: number;
   totalPages: number;
   totalItems: number;
@@ -16,6 +16,13 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
   entityName?: string;
   className?: string;
+}
+
+export interface CursorPaginationProps {
+  hasMore: boolean;
+  onLoadMore: () => void;
+  isLoading?: boolean;
+  entityName?: string;
 }
 
 export function Pagination({
@@ -114,6 +121,36 @@ export function Pagination({
           <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
+    </footer>
+  );
+}
+
+export function CursorPagination({
+  hasMore,
+  onLoadMore,
+  isLoading = false,
+  entityName = "items",
+}: CursorPaginationProps) {
+  return (
+    <footer className="mt-16 flex items-center justify-center py-6 border-t border-outline/10">
+      <Button
+        variant="outline"
+        size="default"
+        onClick={onLoadMore}
+        disabled={!hasMore || isLoading}
+        className="flex items-center gap-2 px-8 py-2.5 rounded-full border border-outline-variant text-sm font-medium text-on-surface-variant hover:bg-surface-container-low min-w-[160px]"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Loading more...
+          </>
+        ) : (
+          <>
+            Load more {entityName}
+          </>
+        )}
+      </Button>
     </footer>
   );
 }

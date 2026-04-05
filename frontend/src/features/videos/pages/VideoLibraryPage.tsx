@@ -7,97 +7,27 @@ import { VideoGrid } from "../components/VideoGrid";
 import { VideoMetadataSidebar } from "../components/VideoMetadataSidebar";
 import { VideoPlayer } from "../components/VideoPlayer";
 import { useVideos } from "../hooks/useVideos";
-import { Pagination } from "@/components/custom/Pagination";
+import { CursorPagination } from "@/components/custom/Pagination";
 import { Button } from "@/components/ui/button";
 import type { Video } from "../models/video.model";
 
-const mockVideos: Video[] = [
-  {
-    id: "1",
-    title: "Autumn Collection Showcase",
-    description: "Shoppable video campaign for Nordic lifestyle furniture.",
-    status: "COMPLETED",
-    video_url: "https://example.com/video1.mp4",
-    thumbnail_url: "https://lh3.googleusercontent.com/aida-public/AB6AXuADsWg5pdyhkA0gIczJHQ5pPetMqnzonjxxnPybAwfLS5vO8xunMPw1zvajyVWloEiYcQNX2QIew0A0urgJnybfRhH4uowZto1ns9W3zVQYMiI519N6AzzTKgD0Fz88sVrhbTpXIlKpMvoij96U_HKmr0TRWTOYY5pTzUbKPaijljPekPwngj-hHym-I-NF6cXHk8xfjF1_EhP1OH4uDD7s5rIAG0AgJdyJj2AGDHF_C2gBNs-LMf8I0TJLoPLnXCsE7Ed6a2xQhbWt",
-    created_at: "2024-01-15T10:00:00Z",
-    updated_at: "2024-01-15T10:00:00Z",
-    views: 12500,
-    hotspots: [
-      {
-        x: 50,
-        y: 50,
-        asset: {
-          asset_id: "a1",
-          name: "Nordic Elm Dining Chair",
-          price: 349,
-          image_url: "https://lh3.googleusercontent.com/aida-public/AB6AXuB-HUHJDyDbRe-SM1OiPCt9bHYpOE_nY15HRwFY9iMogZ73zL5cjzYtXnzmC6jUDnxicgkI_ng7TCOkoyEnCL-5uCsFxdjIws4KiYIOqL11G_J2OW-XmYe0OHIrfqgs7w6Cb-EmWiJhgE7jB9zuXfY_CjZJgwoDZ-yEq-dVy5atEv1xuq_iXI-s7Ba7bHqR5hEaqZSI_kMiOjrJN74uJiB9x89SGMIW3W0sTcBKG3WLEOjPs8Sk1Tx8u30AR7QiUVjMLnjF_4Ul7vW0",
-          product_url: "#",
-        },
-      },
-    ],
-  },
-  {
-    id: "2",
-    title: "Spring Minimalist Vibes",
-    status: "COMPLETED",
-    video_url: "https://example.com/video2.mp4",
-    thumbnail_url: "https://lh3.googleusercontent.com/aida-public/AB6AXuA6kUPrJpjspvqBDmrt08aNBBVP_ak_XBCEj-cRukw6KKx2Ia6Cbj9xkuPORJjZazp3ZW2hrJALHD8UBOnprgbSgzH-J9_lYuQ2gxO8_t8zbPVfusqO_d7yPIZuevCJpxvd37g2t4UcwOcO-gqyVVezJlL1wnP80YmhHAgy5YRCRHyx6VUB7sHl1igJn3sDikT9E0NRDDD8qdgebydhrWQeIDuUuSUGz64RZWtCvIxhs-mWHVZ9I1zgtXmujKj-Gr3XRS8bN1eD3DIp",
-    created_at: "2024-01-14T09:30:00Z",
-    views: 8900,
-    hotspots: [],
-  },
-  {
-    id: "3",
-    title: "Home Office Essentials",
-    status: "PROCESSING",
-    video_url: "",
-    thumbnail_url: "https://lh3.googleusercontent.com/aida-public/AB6AXuAAbRnag5jvhWnxo8BWRMfEt3wyv2k2jVEyL_p93Pi3lIrZw5kjXNNwQ4A_FbnCx-TX8ljNkHKgKV6u_tUnnpRNgoJh1XtaIyMjPxyQfZZ6RvXc1Z66bk9zk_-_24TZ-_k6eCu6ogGhZkIhDtrlzVIoWzv0HMjFuLdmoa9xiJvV2Mwhczq-Hz7wQerGdOTgQh1vPVKJvmS4_FSIdV3YftFHslrudTxbGQTfyrB2A8GVw7w6rrGpBpOTY_DPjlawWZ1zF52-d2egTHIh",
-    created_at: "2024-01-13T14:20:00Z",
-    hotspots: [],
-  },
-  {
-    id: "4",
-    title: "Kitchenware Collection",
-    status: "PENDING",
-    video_url: "",
-    thumbnail_url: "https://lh3.googleusercontent.com/aida-public/AB6AXuB58VZawlj7OukaEGsgWQP8f7JSInANlwXnA52ImQm1nC13GZZlcFOcd1FbYYTiQ8orce0H24vJji68fiy6pMcoQskM5MZj86D6AFeOD3kqWm15Nao45ubTiEbijAgHQUNNIq2Thk275OFfUIWCbFCkaPMTS1MqZApM7jWGXpK6AtQZnqZdTIhKu_FtxTgNEX7HE4xQ3-MXXFdrnp4aSAuz-QbwwHTPm7G_mkOHvTvqZVsy685lmkMlgPe3afzczyvR8JleKDbwVNwd",
-    created_at: "2024-01-12T11:45:00Z",
-    hotspots: [],
-  },
-  {
-    id: "5",
-    title: "Holiday Gift Guide",
-    status: "FAILED",
-    video_url: "",
-    thumbnail_url: "",
-    created_at: "2024-01-11T08:00:00Z",
-    hotspots: [],
-  },
-];
-
 export function VideoLibraryPage() {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedVideo, setSelectedVideo] = useState<Video>(mockVideos[0]);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const limit = 12;
 
-  const { videos, total, totalPages, isLoading } = useVideos({
-    page: currentPage,
-    limit,
-  });
-
-  const displayVideos = videos.length > 0 ? videos : mockVideos;
-  const displayTotal = total || mockVideos.length;
-  const displayTotalPages = totalPages || Math.ceil(mockVideos.length / limit);
+  const { videos, isLoading, hasMore, fetchNext } = useVideos({ limit });
 
   const handleVideoClick = (video: Video) => {
     setSelectedVideo(video);
   };
 
   const handleEditLayers = () => {
-    console.log("Edit interactive layers for:", selectedVideo.title);
+    console.log("Edit interactive layers for:", selectedVideo?.title);
   };
+
+  const displayVideo = selectedVideo ?? videos[0] ?? null;
 
   return (
     <MainLayout>
@@ -105,31 +35,33 @@ export function VideoLibraryPage() {
 
       <main className="p-12 space-y-16 max-w-7xl mx-auto">
         {/* Active Video Section */}
-        <section className="grid grid-cols-12 gap-8">
-          <div className="col-span-12">
-            <div className="flex items-baseline gap-4 mb-2">
-              <h2 className="font-headline text-4xl font-extrabold text-on-surface tracking-tight">
-                {selectedVideo.title}
-              </h2>
-              {selectedVideo.status === "COMPLETED" && (
-                <span className="bg-primary-fixed text-on-primary-fixed-variant px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
-                  Live Now
-                </span>
-              )}
+        {displayVideo && (
+          <section className="grid grid-cols-12 gap-8">
+            <div className="col-span-12">
+              <div className="flex items-baseline gap-4 mb-2">
+                <h2 className="font-headline text-4xl font-extrabold text-on-surface tracking-tight">
+                  {displayVideo.title}
+                </h2>
+                {displayVideo.status === "COMPLETED" && (
+                  <span className="bg-primary-fixed text-on-primary-fixed-variant px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
+                    Live Now
+                  </span>
+                )}
+              </div>
+              <p className="text-on-surface-variant font-body text-lg">
+                {displayVideo.description || "Shoppable video campaign for premium products."}
+              </p>
             </div>
-            <p className="text-on-surface-variant font-body text-lg">
-              {selectedVideo.description || "Shoppable video campaign for premium products."}
-            </p>
-          </div>
 
-          <div className="col-span-12 lg:col-span-8">
-            <VideoPlayer video={selectedVideo} />
-          </div>
+            <div className="col-span-12 lg:col-span-8">
+              <VideoPlayer video={displayVideo} />
+            </div>
 
-          <div className="col-span-12 lg:col-span-4">
-            <VideoMetadataSidebar video={selectedVideo} onEdit={handleEditLayers} />
-          </div>
-        </section>
+            <div className="col-span-12 lg:col-span-4">
+              <VideoMetadataSidebar video={displayVideo} onEdit={handleEditLayers} />
+            </div>
+          </section>
+        )}
 
         {/* Video Library Gallery */}
         <section className="space-y-8">
@@ -168,21 +100,19 @@ export function VideoLibraryPage() {
             </div>
           </div>
 
-          {isLoading ? (
+          {isLoading && videos.length === 0 ? (
             <div className="flex items-center justify-center py-20">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <VideoGrid videos={displayVideos} onVideoClick={handleVideoClick} />
+            <VideoGrid videos={videos} onVideoClick={handleVideoClick} />
           )}
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={displayTotalPages}
-            totalItems={displayTotal}
-            pageSize={limit}
-            onPageChange={setCurrentPage}
+          {/* Cursor Pagination */}
+          <CursorPagination
+            hasMore={hasMore}
+            onLoadMore={fetchNext}
+            isLoading={isLoading}
             entityName="videos"
           />
         </section>

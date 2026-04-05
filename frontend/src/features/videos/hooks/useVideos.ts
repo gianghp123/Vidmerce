@@ -1,56 +1,57 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchVideos, fetchVideo, retryVideo, type FetchVideosParams } from "../api/video.api";
 import type { Video } from "../models/video.model";
+import { useCursorPagination } from "@/lib/hooks/useCursorPagination";
 
 export interface UseVideosOptions extends FetchVideosParams {
   enabled?: boolean;
 }
 
 export function useVideos(options: UseVideosOptions = {}) {
-  const { page = 1, limit = 12, status, search, enabled = true } = options;
-  
-  const [data, setData] = useState<{ data: Video[]; total: number; page: number; limit: number; totalPages: number } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const { cursor, limit = 12, status, search, enabled = true } = options;
 
-  useEffect(() => {
-    if (!enabled) return;
-    
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const result = await fetchVideos({ page, limit, status, search });
-        if (result.error) {
-          throw new Error(result.error.message);
-        }
-        const items = result.data || [];
-        const meta = result.meta || {};
-        setData({
-          data: items,
-          total: (meta as any).total || 0,
-          page: (meta as any).page || 1,
-          limit: (meta as any).limit || 12,
-          totalPages: (meta as any).totalPages || 1,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error("Failed to fetch videos"));
-      } finally {
-        setIsLoading(false);
+  const fetchVideosFn = useCallback(
+    async (cursorParam?: string | null) => {
+      const result = await fetchVideos({
+        cursor: cursorParam,
+        limit,
+        status,
+        search,
+      });
+      if (result.error) {
+        throw new Error(result.error.message);
       }
-    };
-    
-    fetchData();
-  }, [page, limit, status, search, enabled]);
+      const items = result.data || [];
+      const meta = result.meta || {};
+      const nextCursor = (meta as any).lastKey ?? null;
+      return { items, nextCursor };
+    },
+    [limit, status, search]
+  );
 
-  return {
-    videos: data?.data ?? [],
-    total: data?.total ?? 0,
-    page: data?.page ?? 1,
-    totalPages: data?.totalPages ?? 1,
+  const {
+    data: videos,
     isLoading,
     error,
+    hasMore,
+    fetchInitial,
+    fetchNext,
+  } = useCursorPagination<Video>({
+    fetchFn: fetchVideosFn,
+    enabled,
+  });
+
+  useEffect(() => {
+    fetchInitial();
+  }, [enabled, cursor, limit, status, search]);
+
+  return {
+    videos,
+    isLoading,
+    error,
+    hasMore,
+    fetchInitial,
+    fetchNext,
   };
 }
 

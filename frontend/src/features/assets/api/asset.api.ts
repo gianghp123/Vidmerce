@@ -3,7 +3,7 @@ import type { BaseResponse } from "@/lib/base.model";
 import { apiFetch } from "@/lib/api-fetch";
 
 export interface FetchAssetsParams {
-  page?: number;
+  cursor?: string | null;
   limit?: number;
   status?: string;
   search?: string;
