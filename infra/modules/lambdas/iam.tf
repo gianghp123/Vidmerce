@@ -16,9 +16,12 @@ resource "aws_iam_role" "iam_for_lambda" {
   })
 }
 
-resource "aws_iam_role_policy" "s3_policy" {
-  name = "s3_policy"
-  role = aws_iam_role.iam_for_lambda.id
+# ---------------------------------------------------------
+# 2. S3 MANAGED POLICY
+# ---------------------------------------------------------
+resource "aws_iam_policy" "s3_policy" {
+  name        = "lambda_s3_managed_policy"
+  description = "Allow lambda to access S3 buckets"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -32,15 +35,20 @@ resource "aws_iam_role_policy" "s3_policy" {
           "s3:HeadObject"
         ]
         Effect   = "Allow"
-        Resource = "*"
+        Resource = "*" 
       },
     ]
   })
 }
 
-resource "aws_iam_role_policy" "dynamodb_policy" {
-  name = "dynamodb_policy"
-  role = aws_iam_role.iam_for_lambda.id
+resource "aws_iam_role_policy_attachment" "s3_attach" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.s3_policy.arn
+}
+
+resource "aws_iam_policy" "dynamodb_policy" {
+  name        = "lambda_dynamodb_managed_policy"
+  description = "Allow lambda to access DynamoDB tables and indexes"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -55,10 +63,23 @@ resource "aws_iam_role_policy" "dynamodb_policy" {
           "dynamodb:Query",
           "dynamodb:Scan"
         ]
-        Resource = [
-          for table in var.dynamodb_tables : table.arn
-        ]
+        Resource = flatten([
+          for table in var.dynamodb_tables : [
+            table.arn,
+            "${table.arn}/index/*"
+          ]
+        ])
       }
     ]
   })
+}
+
+resource "aws_iam_role_policy_attachment" "dynamodb_attach" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.dynamodb_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_basic_logging" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }

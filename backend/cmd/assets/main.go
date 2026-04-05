@@ -50,6 +50,9 @@ func setup() (*gin.Engine, *configs.AWSConfig) {
 	)
 
 	r := gin.Default()
+	r.OPTIONS("/*any", func(c *gin.Context) {
+		c.Status(200)
+	})
 	api := r.Group("/api")
 	assets.RegisterRoutes(api, dbClient, s3Client)
 

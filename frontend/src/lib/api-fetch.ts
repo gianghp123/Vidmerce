@@ -1,6 +1,6 @@
+import type { BaseResponse } from "./base.model";
 import { snakeToCamel } from "./case";
 import { getCookie } from "./cookie";
-import type { BaseResponse } from "./base.model";
 
 type ApiFetchOptions = {
   baseUrl?: string;
@@ -63,7 +63,11 @@ export async function apiFetch<T = any>(
 
     const fullUrl = `${baseUrl}${url}${queryString}`;
 
-    const response = await fetch(fullUrl, { ...fetchOptions, headers });
+    const response = await fetch(fullUrl, {
+      method: fetchOptions.method || "GET",
+      ...fetchOptions,
+      headers
+    });
 
     if (!response.ok) {
       let message = "Unknown error";

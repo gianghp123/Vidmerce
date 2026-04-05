@@ -1,17 +1,19 @@
-import { useState } from "react";
-import { Filter, Plus } from "lucide-react";
 import { LibraryLayout } from "@/components/custom/LibraryLayout";
-import { AssetGrid } from "../components/AssetGrid";
 import { CursorPagination } from "@/components/custom/Pagination";
+import { Button } from "@/components/ui/button";
+import { Filter, Plus } from "lucide-react";
+import { useState } from "react";
+import { AssetGrid } from "../components/AssetGrid";
 import { CreateAssetModal } from "../components/CreateAssetModal";
 import { useAssets } from "../hooks/useAssets";
-import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/custom/EmptyState";
 
 export function AssetLibraryPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const limit = 12;
 
   const { assets, isLoading, hasMore, fetchNext } = useAssets({ limit });
+  const isEmpty = !isLoading && assets.length === 0;
 
   return (
     <>
@@ -31,26 +33,34 @@ export function AssetLibraryPage() {
           </div>
         }
       >
-        {isLoading && assets.length === 0 ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : (
-          <>
-            <AssetGrid assets={assets} />
-            <CursorPagination
-              hasMore={hasMore}
-              onLoadMore={fetchNext}
-              isLoading={isLoading}
-              entityName="assets"
+        <div className="pt-6">
+          {isLoading && assets.length === 0 ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : isEmpty ? (
+            <EmptyState
+              title="No asset yet"
+              description="Start by creating your first asset."
             />
-          </>
-        )}
+          ) : (
+            <>
+              <AssetGrid assets={assets} />
+
+              <CursorPagination
+                hasMore={hasMore}
+                onLoadMore={fetchNext}
+                isLoading={isLoading}
+                entityName="assets"
+              />
+            </>
+          )}
+        </div>
       </LibraryLayout>
       <CreateAssetModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
-        onSuccess={() => {}}
+        onSuccess={() => { }}
       />
     </>
   );

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	_ "github.com/gianghp123/Vidmerce/backend/cmd/videos/docs" // swagger docs initialization
+	"github.com/gin-contrib/cors"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
@@ -43,6 +44,9 @@ func setup() (*gin.Engine, *configs.AWSConfig) {
 	dbClient := dynamodb.NewFromConfig(cfg, awsCfg.DynamoDBOptions)
 
 	r := gin.Default()
+	r.OPTIONS("/*any", func(c *gin.Context) {
+		c.Status(200)
+	})
 	api := r.Group("/api")
 	videos.RegisterRoutes(api, dbClient)
 
@@ -60,6 +64,14 @@ func main() {
 		// Swagger is configured via swag annotations in main.go and generated docs
 		// The docs.SwaggerInfo is already properly set by swag init
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		router.Use(cors.New(cors.Config{
+			AllowOrigins:     []string{"*"}, // hoặc domain cụ thể
+			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+			ExposeHeaders:    []string{"Content-Length"},
+			AllowCredentials: true,
+			MaxAge:           12 * time.Hour,
+		}))
 		// Run as a standard HTTP server locally
 		log.Printf("Running in LOCAL SERVER mode on http://localhost:3001")
 		if err := router.Run(":3001"); err != nil {
