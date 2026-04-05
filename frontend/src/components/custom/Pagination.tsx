@@ -1,28 +1,39 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Pagination as ShadcnPagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-interface AssetPaginationProps {
+interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  total: number;
-  limit: number;
+  totalItems: number;
+  pageSize: number;
   onPageChange: (page: number) => void;
+  entityName?: string;
+  className?: string;
 }
 
-export function AssetPagination({
+export function Pagination({
   currentPage,
   totalPages,
-  total,
-  limit,
+  totalItems,
+  pageSize,
   onPageChange,
-}: AssetPaginationProps) {
-  const start = (currentPage - 1) * limit + 1;
-  const end = Math.min(currentPage * limit, total);
+  entityName = "items",
+  className,
+}: PaginationProps) {
+  const start = (currentPage - 1) * pageSize + 1;
+  const end = Math.min(currentPage * pageSize, totalItems);
 
-  const getPageNumbers = () => {
+  const getPageNumbers = (): (number | string)[] => {
     const pages: (number | string)[] = [];
     const maxVisible = 5;
-    
+
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -44,7 +55,7 @@ export function AssetPagination({
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -53,7 +64,8 @@ export function AssetPagination({
       <div className="text-sm text-on-surface-variant">
         Showing <span className="font-bold text-on-surface">{start}</span> to{" "}
         <span className="font-bold text-on-surface">{end}</span> of{" "}
-        <span className="font-bold text-on-surface">{total}</span> assets
+        <span className="font-bold text-on-surface">{totalItems}</span>{" "}
+        {entityName}
       </div>
       <div className="flex items-center gap-4">
         <Button
@@ -66,29 +78,31 @@ export function AssetPagination({
           <ChevronLeft className="w-4 h-4" />
           Prev
         </Button>
-        <div className="flex items-center gap-2">
-          {getPageNumbers().map((page, idx) =>
-            typeof page === "number" ? (
-              <Button
-                key={idx}
-                variant={page === currentPage ? "default" : "ghost"}
-                size="icon"
-                onClick={() => onPageChange(page)}
-                className={`w-10 h-10 rounded-full ${
-                  page === currentPage
-                    ? "bg-primary text-on-primary font-bold"
-                    : "hover:bg-surface-container-high"
-                }`}
-              >
-                {page}
-              </Button>
-            ) : (
-              <span key={idx} className="px-2">
-                {page}
-              </span>
-            )
-          )}
-        </div>
+        <ShadcnPagination className={className}>
+          <PaginationContent>
+            {getPageNumbers().map((page, idx) =>
+              typeof page === "number" ? (
+                <PaginationItem key={idx}>
+                  <PaginationLink
+                    onClick={() => onPageChange(page)}
+                    isActive={page === currentPage}
+                    className={`w-10 h-10 rounded-lg ${
+                      page === currentPage
+                        ? "bg-secondary text-primary-foreground font-bold"
+                        : "hover:bg-surface-container-high"
+                    }`}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={idx}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )
+            )}
+          </PaginationContent>
+        </ShadcnPagination>
         <Button
           variant="outline"
           size="default"

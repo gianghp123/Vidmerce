@@ -1,14 +1,14 @@
-import { Search, Bell, Plus } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Bell, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface TopBarProps {
   onSearch?: (query: string) => void;
   onNewAsset?: () => void;
 }
 
-export function TopBar({ onSearch, onNewAsset }: TopBarProps) {
+export function TopBar({ onSearch }: TopBarProps) {
   return (
     <header className="w-full sticky top-0 z-40 bg-surface-background/80 backdrop-blur-md shadow-[0px_20px_40px_rgba(70,33,7,0.06)] flex justify-between items-center px-12 py-6">
       <div className="flex items-center gap-8">
@@ -43,18 +43,6 @@ export function TopBar({ onSearch, onNewAsset }: TopBarProps) {
         </nav>
       </div>
       <div className="flex items-center gap-4">
-        <Button
-          className="hidden lg:flex items-center px-6 py-2.5 text-sm font-heading font-bold text-primary bg-surface-container-high hover:bg-surface-container-highest rounded-xl transition-colors active:scale-95"
-        >
-          Export
-        </Button>
-        <Button
-          onClick={onNewAsset}
-          className="bg-linear-to-br from-secondary to-primary-container text-primary-foreground px-4 py-3 rounded-xl font-heading font-bold text-sm flex items-center justify-center gap-2 shadow-lg active:opacity-80 transition-opacity"
-        >
-          <Plus className="w-4 h-4" />
-          New Asset
-        </Button>
         <div className="flex items-center gap-2 border-l border-outline-variant/20 ml-4 pl-4">
           <Button variant="ghost" size="icon" className="text-primary hover:bg-surface-container-high rounded-full">
             <Bell className="w-5 h-5" />

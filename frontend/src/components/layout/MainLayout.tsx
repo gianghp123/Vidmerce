@@ -37,10 +37,6 @@ export function MainLayout({ children }: MainLayoutProps) {
           </Link>
         </nav>
         <div className="mt-auto space-y-2 pt-6">
-          <Button className="w-full flex items-center justify-center gap-2 bg-gradient-to-br from-secondary to-primary-container text-primary-foreground py-3 px-4 rounded-xl font-heading font-bold text-sm shadow-lg active:opacity-80 transition-opacity mb-6">
-            <Plus className="w-4 h-4" />
-            New Asset
-          </Button>
           <a
             className="flex items-center gap-3 px-4 py-2 text-primary/70 hover:bg-[#EEE7DF] transition-colors"
             href="#"

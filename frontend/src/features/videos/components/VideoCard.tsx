@@ -1,6 +1,7 @@
 import { Play, MoreVertical, Hourglass, Clock, RefreshCw, VideoOff } from "lucide-react";
 import type { Video } from "../models/video.model";
-import { VideoStatusBadge } from "./VideoStatusBadge";
+import { StatusBadge } from "@/components/custom/StatusBadge";
+import { MediaCard } from "@/components/custom/MediaCard";
 
 interface VideoCardProps {
   video: Video;
@@ -33,12 +34,12 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
   const isPending = video.status === "PENDING";
 
   return (
-    <div
-      className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer"
+    <MediaCard
       onClick={onClick}
-    >
-      <div className="aspect-[4/3] relative overflow-hidden bg-surface-container-low">
-        {isFailed ? (
+      aspectRatio="4/3"
+      badge={<StatusBadge status={video.status} />}
+      thumbnail={
+        isFailed ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-error/30 gap-2">
             <VideoOff className="w-14 h-14" />
             <p className="text-[10px] font-bold tracking-widest uppercase">Generation Failed</p>
@@ -56,56 +57,44 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
               </div>
             </div>
           </>
-        )}
-        
-        <div className="absolute top-4 left-4">
-          <VideoStatusBadge status={video.status} />
-        </div>
+        )
+      }
+    >
+      <h5 className="font-headline font-bold text-on-surface mb-1 truncate">
+        {video.title}
+      </h5>
+      
+      {isFailed ? (
+        <p className="text-xs text-on-surface-variant mb-4">Error Code: ERR_092</p>
+      ) : isProcessing ? (
+        <p className="text-xs text-on-surface-variant mb-4">Uploading: 67%</p>
+      ) : isPending ? (
+        <p className="text-xs text-on-surface-variant mb-4">Draft created yesterday</p>
+      ) : (
+        <p className="text-xs text-on-surface-variant mb-4">{formatDate(video.created_at)}</p>
+      )}
 
-        {isProcessing && (
-          <div className="absolute inset-x-0 bottom-0 h-1 bg-surface-container-high overflow-hidden">
-            <div className="w-2/3 h-full bg-primary animate-pulse"></div>
-          </div>
-        )}
-      </div>
-
-      <div className="p-6">
-        <h5 className="font-headline font-bold text-on-surface mb-1 truncate">
-          {video.title}
-        </h5>
-        
+      <div className="flex items-center justify-between">
         {isFailed ? (
-          <p className="text-xs text-on-surface-variant mb-4">Error Code: ERR_092</p>
+          <span className="text-xs font-semibold text-error">Retry Required</span>
         ) : isProcessing ? (
-          <p className="text-xs text-on-surface-variant mb-4">Uploading: 67%</p>
+          <span className="text-xs font-semibold text-outline-variant italic">Waiting for assets...</span>
         ) : isPending ? (
-          <p className="text-xs text-on-surface-variant mb-4">Draft created yesterday</p>
+          <span className="text-xs font-semibold text-outline-variant">Not yet published</span>
         ) : (
-          <p className="text-xs text-on-surface-variant mb-4">{formatDate(video.created_at)}</p>
+          <span className="text-xs font-semibold text-primary">{formatViews(video.views || 0)}</span>
         )}
 
-        <div className="flex items-center justify-between">
-          {isFailed ? (
-            <span className="text-xs font-semibold text-error">Retry Required</span>
-          ) : isProcessing ? (
-            <span className="text-xs font-semibold text-outline-variant italic">Waiting for assets...</span>
-          ) : isPending ? (
-            <span className="text-xs font-semibold text-outline-variant">Not yet published</span>
-          ) : (
-            <span className="text-xs font-semibold text-primary">{formatViews(video.views || 0)}</span>
-          )}
-
-          {isFailed ? (
-            <RefreshCw className="w-4 h-4 text-error cursor-pointer hover:rotate-180 transition-transform" />
-          ) : isProcessing ? (
-            <Hourglass className="w-4 h-4 text-outline-variant" />
-          ) : isPending ? (
-            <Clock className="w-4 h-4 text-outline-variant" />
-          ) : (
-            <MoreVertical className="w-4 h-4 text-outline-variant cursor-pointer hover:text-primary" />
-          )}
-        </div>
+        {isFailed ? (
+          <RefreshCw className="w-4 h-4 text-error cursor-pointer hover:rotate-180 transition-transform" />
+        ) : isProcessing ? (
+          <Hourglass className="w-4 h-4 text-outline-variant" />
+        ) : isPending ? (
+          <Clock className="w-4 h-4 text-outline-variant" />
+        ) : (
+          <MoreVertical className="w-4 h-4 text-outline-variant cursor-pointer hover:text-primary" />
+        )}
       </div>
-    </div>
+    </MediaCard>
   );
 }

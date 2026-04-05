@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchVideos, fetchVideo, retryVideo, type FetchVideosParams } from "../api/video-api";
+import { fetchVideos, fetchVideo, retryVideo, type FetchVideosParams } from "../api/video.api";
 import type { Video } from "../models/video.model";
 
 export interface UseVideosOptions extends FetchVideosParams {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchAssets, fetchAsset, type FetchAssetsParams } from "../api/asset-api";
+import { fetchAssets, fetchAsset, type FetchAssetsParams } from "../api/asset.api";
 import type { Asset } from "../models/asset.model";
 
 export interface UseAssetsOptions extends FetchAssetsParams {

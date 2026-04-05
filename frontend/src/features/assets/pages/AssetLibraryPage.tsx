@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Filter } from "lucide-react";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { TopBar } from "@/components/layout/TopBar";
+import { Filter, Plus } from "lucide-react";
+import { LibraryLayout } from "@/components/custom/LibraryLayout";
 import { AssetGrid } from "../components/AssetGrid";
-import { AssetPagination } from "../components/AssetPagination";
+import { Pagination } from "@/components/custom/Pagination";
+import { CreateAssetModal } from "../components/CreateAssetModal";
 import { useAssets } from "../hooks/useAssets";
 import type { Asset } from "../models/asset.model";
+import { Button } from "@/components/ui/button";
 
 const mockAssets: Asset[] = [
   {
@@ -52,6 +53,7 @@ const mockAssets: Asset[] = [
 
 export function AssetLibraryPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const limit = 12;
   
   const { assets: fetchedAssets, isLoading } = useAssets({ page: currentPage, limit });
@@ -61,49 +63,47 @@ export function AssetLibraryPage() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <MainLayout>
-      <TopBar />
-      
-      <main className="p-12 space-y-16 max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <h2 className="text-4xl font-extrabold font-heading text-on-surface tracking-tight mb-2">
-              Asset Library
-            </h2>
-            <p className="text-on-surface-variant font-body">
-              Manage your shoppable product catalog and creative assets.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
+    <>
+      <LibraryLayout
+        title="Asset Library"
+        description="Manage your shoppable product catalog and creative assets."
+        actions={
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2 bg-linear-to-br from-secondary to-primary-container text-primary-foreground rounded-xl font-heading font-bold text-sm shadow-lg active:opacity-80 transition-opacity">
+              <Plus className="w-4 h-4 mr-2" />
+              New Asset
+            </Button>
             <div className="bg-surface-container-low px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium text-on-surface-variant">
               <Filter className="w-4 h-4" />
               <span>Sort: Recently Added</span>
             </div>
           </div>
-        </div>
-
-        {/* Loading State */}
+        }
+      >
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
           <>
-            {/* Asset Grid */}
             <AssetGrid assets={assets} />
 
-            {/* Pagination */}
-            <AssetPagination
+            <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              total={total}
-              limit={limit}
+              totalItems={total}
+              pageSize={limit}
               onPageChange={setCurrentPage}
+              entityName="assets"
             />
           </>
         )}
-      </main>
-    </MainLayout>
+      </LibraryLayout>
+      <CreateAssetModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        onSuccess={() => setCurrentPage(1)}
+      />
+    </>
   );
 }

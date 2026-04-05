@@ -1,11 +1,14 @@
-import { useState } from "react";
-import { Grid3X3, List } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { TopBar } from "@/components/layout/TopBar";
-import { VideoPlayer } from "../components/VideoPlayer";
-import { VideoMetadataSidebar } from "../components/VideoMetadataSidebar";
+import { Grid3X3, List, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { VideoGrid } from "../components/VideoGrid";
+import { VideoMetadataSidebar } from "../components/VideoMetadataSidebar";
+import { VideoPlayer } from "../components/VideoPlayer";
 import { useVideos } from "../hooks/useVideos";
+import { Pagination } from "@/components/custom/Pagination";
+import { Button } from "@/components/ui/button";
 import type { Video } from "../models/video.model";
 
 const mockVideos: Video[] = [
@@ -73,6 +76,7 @@ const mockVideos: Video[] = [
 ];
 
 export function VideoLibraryPage() {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedVideo, setSelectedVideo] = useState<Video>(mockVideos[0]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -98,7 +102,7 @@ export function VideoLibraryPage() {
   return (
     <MainLayout>
       <TopBar />
-      
+
       <main className="p-12 space-y-16 max-w-7xl mx-auto">
         {/* Active Video Section */}
         <section className="grid grid-cols-12 gap-8">
@@ -139,23 +143,25 @@ export function VideoLibraryPage() {
               </p>
             </div>
             <div className="flex gap-3">
+              <Button onClick={() => navigate("/videos/create")} className="gap-2 bg-linear-to-br from-secondary to-primary-container text-primary-foreground rounded-xl font-heading font-bold text-sm shadow-lg active:opacity-80 transition-opacity">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Video
+              </Button>
               <button
                 onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-lg ${
-                  viewMode === "grid"
+                className={`p-2 rounded-lg ${viewMode === "grid"
                     ? "bg-surface-container-high text-on-surface-variant"
                     : "text-outline-variant hover:text-primary"
-                } transition-colors`}
+                  } transition-colors`}
               >
                 <Grid3X3 className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`p-2 rounded-lg ${
-                  viewMode === "list"
+                className={`p-2 rounded-lg ${viewMode === "list"
                     ? "bg-surface-container-high text-on-surface-variant"
                     : "text-outline-variant hover:text-primary"
-                } transition-colors`}
+                  } transition-colors`}
               >
                 <List className="w-5 h-5" />
               </button>
@@ -171,49 +177,14 @@ export function VideoLibraryPage() {
           )}
 
           {/* Pagination */}
-          <footer className="mt-16 flex items-center justify-between py-6 border-t border-outline-variant/10">
-            <div className="text-sm text-on-surface-variant">
-              Showing <span className="font-bold text-on-surface">1</span> to{" "}
-              <span className="font-bold text-on-surface">
-                {Math.min(limit, displayTotal)}
-              </span>{" "}
-              of <span className="font-bold text-on-surface">{displayTotal}</span>{" "}
-              videos
-            </div>
-            <div className="flex items-center gap-4">
-              <button
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-outline-variant text-sm font-medium text-on-surface-variant hover:bg-surface-container-low disabled:opacity-50"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-              >
-                Prev
-              </button>
-              <div className="flex items-center gap-2">
-                {Array.from({ length: displayTotalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <button
-                      key={page}
-                      className={`w-10 h-10 flex items-center justify-center rounded-full ${
-                        page === currentPage
-                          ? "bg-primary text-on-primary font-bold"
-                          : "hover:bg-surface-container-high"
-                      }`}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  )
-                )}
-              </div>
-              <button
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-surface-container-high text-sm font-medium text-on-surface hover:bg-surface-container-highest transition-colors disabled:opacity-50"
-                disabled={currentPage === displayTotalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-              >
-                Next
-              </button>
-            </div>
-          </footer>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={displayTotalPages}
+            totalItems={displayTotal}
+            pageSize={limit}
+            onPageChange={setCurrentPage}
+            entityName="videos"
+          />
         </section>
       </main>
     </MainLayout>

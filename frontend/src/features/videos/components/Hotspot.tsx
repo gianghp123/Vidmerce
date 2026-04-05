@@ -20,7 +20,7 @@ export function Hotspot({ hotspot }: HotspotProps) {
         
         <div className="absolute top-10 left-0 w-64 bg-surface-container-lowest/90 backdrop-blur-xl rounded-2xl p-4 shadow-[0px_20px_40px_rgba(70,33,7,0.12)] opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
           <div className="flex gap-4 mb-4">
-            <div className="w-16 h-16 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+            <div className="w-16 h-16 rounded-lg overflow-hidden bg-surface-container-low shrink-0">
               <img
                 className="w-full h-full object-cover"
                 alt={asset.name}
