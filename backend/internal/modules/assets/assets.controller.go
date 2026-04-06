@@ -82,7 +82,7 @@ func (ctrl *AssetController) ConfirmUpload(c *gin.Context) {
 // @Produce      json
 // @Param        limit  query     int     false  "Number of items per page"                Format(int32)
 // @Param        cursor query     string  false  "Pagination cursor for next page"
-// @Success      200    {object}  response.BaseResponse[[]res.AssetRes]
+// @Success      200    {object}  response.BaseResponse[[]res.AssetPreviewRes]
 // @Failure      400    {object}  response.BaseResponse[any]
 // @Failure      500    {object}  response.BaseResponse[any]
 // @Router       /assets [get]

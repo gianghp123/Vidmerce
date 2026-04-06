@@ -23,7 +23,7 @@ type AssetService interface {
 	CreateAsset(ctx context.Context, req req.CreateAssetReq) (*res.CreateAssetRes, *response.AppError)
 	ConfirmUpload(ctx context.Context, assetID string) (*res.ConfirmAssetRes, *response.AppError)
 	GetAsset(ctx context.Context, assetID string) (*res.AssetRes, *response.AppError)
-	ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetRes], *response.AppError)
+	ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetPreviewRes], *response.AppError)
 	GetImageUploadUrl(ctx context.Context, assetID string, fileName string) (*res.UploadInfo, *response.AppError)
 	DeleteAssetImage(ctx context.Context, assetID string, imageID string) *response.AppError
 }
@@ -201,17 +201,16 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 		return nil, response.Internal("failed to find images")
 	}
 
-	var imageInfo res.ImageInfo
+	imageInfos := make([]res.ImageInfo, 0)
 	for _, img := range images {
 		if img.Status == enums.StatusImageCompleted {
 			imageURL := utils.GetCDNURL(img.FileKey)
-			imageInfo = res.ImageInfo{
+			imageInfos = append(imageInfos, res.ImageInfo{
 				ImageID:  img.SK,
 				ImageURL: imageURL,
 				Order:    img.Order,
 				Status:   string(img.Status),
-			}
-			break
+			})
 		}
 	}
 
@@ -219,14 +218,14 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 		AssetID:    assetID,
 		Name:       asset.Name,
 		Price:      asset.Price,
-		Image:      imageInfo,
+		Images:     imageInfos,
 		ProductURL: asset.ProductURL,
 		Status:     string(asset.Status),
 		CreatedAt:  asset.CreatedAt,
 	}, nil
 }
 
-func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetRes], *response.AppError) {
+func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetPreviewRes], *response.AppError) {
 	if limit <= 0 {
 		limit = 20
 	}
@@ -236,7 +235,7 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 		return nil, response.Internal("failed to fetch assets: " + err.Error())
 	}
 
-	assets := make([]res.AssetRes, 0, len(result.Data))
+	assets := make([]res.AssetPreviewRes, 0, len(result.Data))
 	for _, item := range result.Data {
 		assetID := item.PK
 
@@ -253,7 +252,7 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 			}
 		}
 
-		assets = append(assets, res.AssetRes{
+		assets = append(assets, res.AssetPreviewRes{
 			AssetID:    assetID,
 			Name:       item.Name,
 			Price:      item.Price,
@@ -264,7 +263,7 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 		})
 	}
 
-	return &response.PaginatedResult[res.AssetRes]{
+	return &response.PaginatedResult[res.AssetPreviewRes]{
 		Data: assets,
 		Meta: result.Meta,
 	}, nil

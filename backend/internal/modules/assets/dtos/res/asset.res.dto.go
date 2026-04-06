@@ -27,6 +27,16 @@ type ConfirmAssetRes struct {
 }
 
 type AssetRes struct {
+	AssetID    string      `json:"assetId"`
+	Name       string      `json:"name"`
+	Price      float64     `json:"price"`
+	Images     []ImageInfo `json:"images"`
+	ProductURL string      `json:"productUrl"`
+	Status     string      `json:"status"`
+	CreatedAt  string      `json:"createdAt"`
+}
+
+type AssetPreviewRes struct {
 	AssetID    string    `json:"assetId"`
 	Name       string    `json:"name"`
 	Price      float64   `json:"price"`
