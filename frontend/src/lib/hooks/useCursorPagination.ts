@@ -55,7 +55,7 @@ export function useCursorPagination<T>(
 
   const fetchNext = useCallback(
     async () => {
-      if (!enabled || !hasMore || isLoading) return;
+      if (!enabled || !hasMore || isLoading || !lastKey) return;
 
       setIsLoading(true);
       setError(null);

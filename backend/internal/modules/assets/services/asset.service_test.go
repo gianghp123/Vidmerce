@@ -448,7 +448,8 @@ func TestGetAsset(t *testing.T) {
 					assert.Equal(t, tt.wantID, result.AssetID)
 				}
 				if tt.wantLen > 0 {
-					assert.Equal(t, tt.wantLen, len(result.Images))
+					assert.Equal(t, tt.wantLen, 1)
+					assert.NotEmpty(t, result.Image.ImageURL)
 				}
 			}
 		})

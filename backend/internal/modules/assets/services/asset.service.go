@@ -201,14 +201,17 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 		return nil, response.Internal("failed to find images")
 	}
 
-	imageInfos := make([]res.ImageInfo, 0, len(images))
+	var imageInfo res.ImageInfo
 	for _, img := range images {
 		if img.Status == enums.StatusImageCompleted {
 			imageURL := utils.GetCDNURL(img.FileKey)
-			imageInfos = append(imageInfos, res.ImageInfo{
+			imageInfo = res.ImageInfo{
+				ImageID:  img.SK,
 				ImageURL: imageURL,
 				Order:    img.Order,
-			})
+				Status:   string(img.Status),
+			}
+			break
 		}
 	}
 
@@ -216,7 +219,7 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 		AssetID:    assetID,
 		Name:       asset.Name,
 		Price:      asset.Price,
-		Images:     imageInfos,
+		Image:      imageInfo,
 		ProductURL: asset.ProductURL,
 		Status:     string(asset.Status),
 		CreatedAt:  asset.CreatedAt,
@@ -237,20 +240,16 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 	for _, item := range result.Data {
 		assetID := item.PK
 
-		images, err := s.imageRepo.FindByAssetID(ctx, assetID)
+		img, err := s.imageRepo.FindOneCompletedImageByAssetId(ctx, assetID)
 		if err != nil {
 			continue
 		}
 
-		var imageInfos []res.ImageInfo
-		for _, img := range images {
-			if img.Status == enums.StatusImageCompleted && img.Order == 1 {
-				imageURL := utils.GetCDNURL(img.FileKey)
-				imageInfos = append(imageInfos, res.ImageInfo{
-					ImageURL: imageURL,
-					Order:    img.Order,
-				})
-				break
+		var image res.ImageInfo
+		if img != nil {
+			image = res.ImageInfo{
+				ImageURL: utils.GetCDNURL(img.FileKey),
+				Order:    img.Order,
 			}
 		}
 
@@ -258,7 +257,7 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 			AssetID:    assetID,
 			Name:       item.Name,
 			Price:      item.Price,
-			Images:     imageInfos,
+			Image:      image,
 			ProductURL: item.ProductURL,
 			Status:     string(item.Status),
 			CreatedAt:  item.CreatedAt,
@@ -367,34 +366,25 @@ func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, ima
 		return response.Internal("failed to find images")
 	}
 
-	var targetOrder int
-	found := false
+	var targetImg *models.ImageEntity // adjust type if needed
 	for _, img := range images {
-		imgID := fmt.Sprintf("img-%s-%d", assetID, img.Order)
-		if imgID == imageID {
-			targetOrder = img.Order
-			found = true
+		if img.SK == imageID {
+			targetImg = &img
 			break
 		}
 	}
 
-	if !found {
+	if targetImg == nil {
 		return response.NotFound("image not found")
 	}
 
-	img, err := s.imageRepo.FindByAssetIDAndOrder(ctx, assetID, targetOrder)
-	if err != nil {
-		return response.Internal("failed to get image")
-	}
-	if img == nil {
-		return response.NotFound("image not found")
-	}
-
-	if err := s.storage.DeleteObject(ctx, img.FileKey); err != nil {
+	// delete file from storage
+	if err := s.storage.DeleteObject(ctx, targetImg.FileKey); err != nil {
 		return response.Internal("failed to delete file from storage")
 	}
 
-	if err := s.imageRepo.Delete(ctx, assetID, targetOrder); err != nil {
+	// delete DB record
+	if err := s.imageRepo.Delete(ctx, assetID, targetImg.SK); err != nil {
 		return response.Internal("failed to delete image record")
 	}
 

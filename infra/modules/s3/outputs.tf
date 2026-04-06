@@ -6,3 +6,7 @@ output "s3_bucket_names" {
 output "s3_public_url" {
   value = aws_s3_bucket_website_configuration.vite_site.website_endpoint
 }
+
+output "s3_asset_storage_url" {
+  value = "https://${aws_s3_bucket.buckets["asset-storage"].bucket}.s3.${var.region}.amazonaws.com"
+}

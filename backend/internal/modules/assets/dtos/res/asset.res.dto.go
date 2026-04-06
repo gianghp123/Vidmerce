@@ -8,6 +8,7 @@ type UploadInfo struct {
 }
 
 type ImageInfo struct {
+	ImageID  string `json:"imageId"`
 	ImageURL string `json:"imageUrl"`
 	Order    int    `json:"order"`
 	Status   string `json:"status"`
@@ -26,11 +27,11 @@ type ConfirmAssetRes struct {
 }
 
 type AssetRes struct {
-	AssetID    string      `json:"assetId"`
-	Name       string      `json:"name"`
-	Price      float64     `json:"price"`
-	Images     []ImageInfo `json:"images,omitempty"`
-	ProductURL string      `json:"productUrl"`
-	Status     string      `json:"status"`
-	CreatedAt  string      `json:"createdAt"`
+	AssetID    string    `json:"assetId"`
+	Name       string    `json:"name"`
+	Price      float64   `json:"price"`
+	Image      ImageInfo `json:"image,omitempty"`
+	ProductURL string    `json:"productUrl"`
+	Status     string    `json:"status"`
+	CreatedAt  string    `json:"createdAt"`
 }

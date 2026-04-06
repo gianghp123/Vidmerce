@@ -23,18 +23,29 @@ resource "aws_s3_bucket_cors_configuration" "asset_storage_cors" {
 
   cors_rule {
     allowed_headers = ["*"]
-    allowed_methods = ["PUT", "POST"]
-    allowed_origins = ["http://localhost:5173"]
+    allowed_methods = ["PUT", "POST", "GET"]
+    allowed_origins = ["*"]
     expose_headers  = ["ETag"]
     max_age_seconds = 3000
   }
-
-  cors_rule {
-    allowed_methods = ["GET"]
-    allowed_origins = ["*"]
-  }
 }
 
+//for dev only
+resource "aws_s3_bucket_policy" "asset_storage_policy" {
+  bucket = aws_s3_bucket.buckets["asset-storage"].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = "*"
+      Action = ["s3:GetObject"]
+      Resource = "${aws_s3_bucket.buckets["asset-storage"].arn}/*"
+    }]
+  })
+}
+
+//for dev only
 resource "aws_s3_bucket_public_access_block" "bucket-policies" {
   for_each = aws_s3_bucket.buckets
 

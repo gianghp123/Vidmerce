@@ -41,6 +41,7 @@ export function AssetShowcasePage() {
   }, [fetchAssetData]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("FILES:", e.target.files);
     uploadImages(e.target.files);
     e.target.value = "";
   };
@@ -160,21 +161,21 @@ export function AssetShowcasePage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {asset?.images?.map((image, index) => (
+              {asset?.images?.map((image, _ ) => (
                 <div
-                  key={index}
+                  key={image.imageId}  
                   className="relative aspect-square rounded-lg overflow-hidden bg-surface-container-high group"
                 >
                   <img
                     src={image.imageUrl}
-                    alt={`Asset image ${index + 1}`}
+                    alt={`Asset image ${image.imageId}`}
                     className="w-full h-full object-cover"
                   />
                   <button
-                    onClick={() => handleDeleteImage(image.order.toString())}
+                    onClick={() => handleDeleteImage(image.imageId)}
                     className="absolute top-2 right-2 p-2 rounded-full bg-error text-on-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/80"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4 text-red-500" />
                   </button>
                 </div>
               ))}

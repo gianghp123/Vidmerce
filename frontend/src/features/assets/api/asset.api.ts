@@ -1,4 +1,4 @@
-import type { Asset, AssetUpload } from "../models/asset.model";
+import type { Asset, AssetPreview, AssetUpload } from "../models/asset.model";
 import type { BaseResponse } from "@/lib/base.model";
 import { apiFetch } from "@/lib/api-fetch";
 
@@ -11,8 +11,8 @@ export interface FetchAssetsParams {
 
 export async function fetchAssets(
   params: FetchAssetsParams = {}
-): Promise<BaseResponse<Asset[]>> {
-  return apiFetch<Asset[]>("/assets", { query: params });
+): Promise<BaseResponse<AssetPreview[]>> {
+  return apiFetch<AssetPreview[]>("/assets", { query: params });
 }
 
 export async function fetchAsset(id: string): Promise<BaseResponse<Asset>> {

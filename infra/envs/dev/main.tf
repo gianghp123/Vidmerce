@@ -28,6 +28,7 @@ module "s3" {
   project          = var.project
   environment      = var.environment
   frontend_folder  = "${path.module}/../../../frontend/dist"
+  region = var.region
 }
 
 module "lambda" {
@@ -40,6 +41,7 @@ module "lambda" {
   s3_buckets = module.s3.s3_bucket_names
   region = var.region
   count = var.is_local ? 0 : 1
+  cdn_url = module.s3.s3_asset_storage_url
 }
 
 module "api_gateway" {

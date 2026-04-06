@@ -1,16 +1,16 @@
-import { ArrowRight, MoreVertical } from "lucide-react";
-import type { Asset } from "../models/asset.model";
-import { StatusBadge } from "@/components/custom/StatusBadge";
 import { MediaCard } from "@/components/custom/MediaCard";
+import { StatusBadge } from "@/components/custom/StatusBadge";
+import { ArrowRight, MoreVertical } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import type { AssetPreview } from "../models/asset.model";
 
 interface AssetCardProps {
-  asset: Asset;
+  asset: AssetPreview;
 }
 
 export function AssetCard({ asset }: AssetCardProps) {
   const navigate = useNavigate();
-  const thumbnailUrl = asset.images?.[0]?.imageUrl || "/placeholder-image.jpg";
+  const thumbnailUrl = asset.image?.imageUrl || "/placeholder-image.jpg";
   const formattedPrice = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",

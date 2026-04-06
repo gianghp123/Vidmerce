@@ -20,7 +20,7 @@ export function useAssetImages({ asset, assetId, onRefresh }: UseAssetImagesOpti
   const uploadImages = async (files: FileList | null) => {
     if (!files || files.length === 0 || !asset) return;
 
-    const remainingSlots = MAX_IMAGES - asset.images.length;
+    const remainingSlots = MAX_IMAGES - (asset?.images?.length || 0);
     if (remainingSlots <= 0) {
       toast.error(`Maximum ${MAX_IMAGES} images allowed`);
       return;

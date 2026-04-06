@@ -18,9 +18,10 @@ import (
 type ImageRepository interface {
 	FindByAssetID(ctx context.Context, assetID string) ([]models.ImageEntity, error)
 	FindByAssetIDAndOrder(ctx context.Context, assetID string, order int) (*models.ImageEntity, error)
+	FindOneCompletedImageByAssetId(ctx context.Context, assetID string) (*models.ImageEntity, error)
 	Create(ctx context.Context, images []models.ImageEntity) error
 	UpdateStatus(ctx context.Context, assetID string, order int, status string) error
-	Delete(ctx context.Context, assetID string, order int) error
+	Delete(ctx context.Context, assetID string, imageID string) error
 }
 
 type imageRepository struct {
@@ -57,9 +58,10 @@ func (r *imageRepository) FindByAssetID(ctx context.Context, assetID string) ([]
 		return nil, err
 	}
 
-	// Strip "ASSET#" prefix from PK for each image
+	// Strip "ASSET#" and "IMAGE#" prefixes
 	for i := range images {
 		images[i].PK = strings.TrimPrefix(images[i].PK, "ASSET#")
+		images[i].SK = strings.TrimPrefix(images[i].SK, "IMAGE#")
 	}
 
 	return images, nil
@@ -132,15 +134,16 @@ func (r *imageRepository) FindByAssetIDAndOrder(ctx context.Context, assetID str
 	if err := attributevalue.UnmarshalMap(resp.Item, &img); err != nil {
 		return nil, err
 	}
-	// Strip "ASSET#" prefix from PK to return raw asset ID
+	// Strip "ASSET#" and "IMAGE#" prefixes
 	img.PK = strings.TrimPrefix(img.PK, "ASSET#")
+	img.SK = strings.TrimPrefix(img.SK, "IMAGE#")
 	return &img, nil
 }
 
-func (r *imageRepository) Delete(ctx context.Context, assetID string, order int) error {
+func (r *imageRepository) Delete(ctx context.Context, assetID string, imageID string) error {
 	key, err := attributevalue.MarshalMap(map[string]string{
 		"PK": "ASSET#" + assetID,
-		"SK": fmt.Sprintf("IMAGE#%d", order),
+		"SK": fmt.Sprintf("IMAGE#%s", imageID),
 	})
 	if err != nil {
 		return err
@@ -151,4 +154,46 @@ func (r *imageRepository) Delete(ctx context.Context, assetID string, order int)
 		Key:       key,
 	})
 	return err
+}
+
+func (r *imageRepository) FindOneCompletedImageByAssetId(ctx context.Context, assetID string) (*models.ImageEntity, error) {
+	keyCond := expression.Key("PK").Equal(expression.Value("ASSET#" + assetID)).
+		And(expression.Key("SK").BeginsWith("IMAGE#"))
+	filter := expression.Name("status").Equal(expression.Value("COMPLETED"))
+
+	expr, err := expression.NewBuilder().
+		WithKeyCondition(keyCond).
+		WithFilter(filter).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+
+	input := &dynamodb.QueryInput{
+		TableName:                 aws.String(core.TableName),
+		KeyConditionExpression:    expr.KeyCondition(),
+		FilterExpression:          expr.Filter(),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		Limit:                     aws.Int32(1),
+		ScanIndexForward:          aws.Bool(true),
+	}
+
+	resp, err := r.dbClient.Query(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.Items) == 0 {
+		return nil, nil
+	}
+
+	var img models.ImageEntity
+	if err := attributevalue.UnmarshalMap(resp.Items[0], &img); err != nil {
+		return nil, err
+	}
+
+	img.PK = strings.TrimPrefix(img.PK, "ASSET#")
+	img.SK = strings.TrimPrefix(img.SK, "IMAGE#")
+	return &img, nil
 }

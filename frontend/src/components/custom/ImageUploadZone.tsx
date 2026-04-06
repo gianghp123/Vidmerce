@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { MAX_IMAGES } from "@/lib/constants";
 
 interface ImageFile {
   id: string;
@@ -88,14 +89,14 @@ export function ImageUploadZone({
           accept="image/*"
           multiple
           onChange={handleFileInput}
-          className="absolute inset-0 opacity-0 cursor-pointer"
+          className="absolute inset-0 opacity-0 cursor-pointer z-50"
           id="image-upload"
           disabled={value.length >= maxFiles}
         />
         <div className="w-16 h-16 rounded-full bg-primary-fixed flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
           <Upload className="w-6 h-6" />
         </div>
-        <p className="text-on-surface font-semibold mb-1">Upload 1 to 10 images</p>
+        <p className="text-on-surface font-semibold mb-1">Upload 1 to {MAX_IMAGES} images</p>
         <p className="text-sm text-on-surface-variant">Drag and drop or click to browse</p>
       </div>
 

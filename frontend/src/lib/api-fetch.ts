@@ -73,7 +73,7 @@ export async function apiFetch<T = any>(
       let message = "Unknown error";
       try {
         const errorData = await response.json();
-        message = errorData.message || message;
+        message = errorData.error.message || errorData.message || message;
       } catch (_) { }
       return {
         data: null,

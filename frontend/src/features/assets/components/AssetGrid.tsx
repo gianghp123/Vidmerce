@@ -1,8 +1,8 @@
-import type { Asset } from "../models/asset.model";
+import type { AssetPreview } from "../models/asset.model";
 import { AssetCard } from "./AssetCard";
 
 interface AssetGridProps {
-  assets: Asset[];
+  assets: AssetPreview[];
 }
 
 export function AssetGrid({ assets }: AssetGridProps) {

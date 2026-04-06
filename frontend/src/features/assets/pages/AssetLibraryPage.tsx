@@ -11,9 +11,8 @@ import { EmptyState } from "@/components/custom/EmptyState";
 
 export function AssetLibraryPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const limit = 12;
 
-  const { assets, isLoading, hasMore, fetchNext, fetchInitial, error } = useAssets({ limit });
+  const { assets, isLoading, hasMore, fetchNext, fetchInitial, error } = useAssets();
   const isEmpty = !isLoading && assets.length === 0;
 
   useEffect(() => {

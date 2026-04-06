@@ -60,6 +60,7 @@ func setup() (*gin.Engine, *configs.AWSConfig) {
 }
 
 func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	log.Println("Full request", req)
 	return ginLambda.ProxyWithContext(ctx, req)
 }
 
