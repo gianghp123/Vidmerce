@@ -10,6 +10,8 @@ resource "aws_s3_bucket" "buckets" {
 
   bucket = "${var.project}-${var.environment}-${each.key}"
 
+  force_destroy = true //dev only
+
   tags = {
     Name        = each.value
     Environment = var.environment

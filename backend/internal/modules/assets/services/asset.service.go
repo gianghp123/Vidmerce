@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gianghp123/Vidmerce/backend/internal/core"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
 	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
@@ -17,8 +18,6 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/internal/utils"
 	"github.com/google/uuid"
 )
-
-const MaxImagesPerAsset = 5
 
 type AssetService interface {
 	CreateAsset(ctx context.Context, req req.CreateAssetReq) (*res.CreateAssetRes, *response.AppError)
@@ -44,8 +43,8 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 	if imageCount <= 0 {
 		imageCount = 1
 	}
-	if imageCount > MaxImagesPerAsset {
-		return nil, response.BadRequest(fmt.Sprintf("maximum %d images per asset", MaxImagesPerAsset))
+	if imageCount > core.MaxImagesPerAsset {
+		return nil, response.BadRequest(fmt.Sprintf("maximum %d images per asset", core.MaxImagesPerAsset))
 	}
 
 	assetID := uuid.New().String()
@@ -304,8 +303,8 @@ func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fi
 	}
 
 	// 3. Enforce the limit based ONLY on active images
-	if activeCount >= MaxImagesPerAsset {
-		return nil, response.BadRequest(fmt.Sprintf("maximum %d images per asset reached", MaxImagesPerAsset))
+	if activeCount >= core.MaxImagesPerAsset {
+		return nil, response.BadRequest(fmt.Sprintf("maximum %d images per asset reached", core.MaxImagesPerAsset))
 	}
 
 	// 4. Extract extension safely

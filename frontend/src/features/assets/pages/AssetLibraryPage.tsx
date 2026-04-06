@@ -13,7 +13,7 @@ export function AssetLibraryPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const limit = 12;
 
-  const { assets, isLoading, hasMore, fetchNext, error } = useAssets({ limit });
+  const { assets, isLoading, hasMore, fetchNext, fetchInitial, error } = useAssets({ limit });
   const isEmpty = !isLoading && assets.length === 0;
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export function AssetLibraryPage() {
       <CreateAssetModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
-        onSuccess={() => { }}
+        onSuccess={fetchInitial}
       />
     </>
   );

@@ -46,6 +46,7 @@ export function CreateAssetModal({
     onSuccess: () => {
       setFormData({ name: "", price: "", productUrl: "" });
       setImages([]);
+      toast.success("Create asset successfully")
       onOpenChange(false);
       onSuccess?.();
     },
