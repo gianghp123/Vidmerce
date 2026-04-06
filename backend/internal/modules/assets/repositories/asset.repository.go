@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"context"
+	"errors"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -14,11 +16,16 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
 )
 
+const MaxImagesPerAsset = 5
+
+var ErrMaxImagesReached = errors.New("maximum images per asset reached")
+
 type AssetRepository interface {
 	FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error)
 	FindByID(ctx context.Context, id string) (*models.AssetEntity, error)
 	Create(ctx context.Context, asset models.AssetEntity) error
 	UpdateAssetStatus(ctx context.Context, id string, status string) error
+	IncrementImageCount(ctx context.Context, id string) (int, error)
 }
 
 type assetRepository struct {
@@ -148,4 +155,46 @@ func (r *assetRepository) UpdateAssetStatus(ctx context.Context, id string, stat
 		},
 	})
 	return err
+}
+
+func (r *assetRepository) IncrementImageCount(ctx context.Context, id string) (int, error) {
+	key, err := attributevalue.MarshalMap(map[string]string{
+		"PK": "ASSET#" + id,
+		"SK": "METADATA",
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	maxVal := strconv.Itoa(MaxImagesPerAsset)
+
+	resp, err := r.dbClient.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName:           aws.String(core.TableName),
+		Key:                 key,
+		UpdateExpression:    aws.String("SET #c = #c + :inc"),
+		ConditionExpression: aws.String("#c < :max"),
+		ExpressionAttributeNames: map[string]string{
+			"#c": "imageCount",
+		},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":inc": &types.AttributeValueMemberN{Value: "1"},
+			":max": &types.AttributeValueMemberN{Value: maxVal},
+		},
+		ReturnValues: types.ReturnValueAllNew,
+	})
+	if err != nil {
+		var conditionalErr *types.ConditionalCheckFailedException
+		if errors.As(err, &conditionalErr) {
+			return 0, ErrMaxImagesReached
+		}
+		return 0, err
+	}
+
+	var result struct {
+		ImageCount int `dynamodbav:"imageCount"`
+	}
+	if err := attributevalue.UnmarshalMap(resp.Attributes, &result); err != nil {
+		return 0, err
+	}
+	return result.ImageCount, nil
 }

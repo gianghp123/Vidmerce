@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ImageUploadZone } from "@/components/custom/ImageUploadZone";
 import { useCreateAsset } from "../hooks/useCreateAsset";
-import type { CreateAssetPayload } from "../api/create-asset.api";
+import type { CreateAssetDto } from "../dtos/create-asset.dto";
+import { MAX_IMAGES } from "@/lib/constants";
 
 interface ImageFile {
   id: string;
@@ -48,6 +50,7 @@ export function CreateAssetModal({
       onSuccess?.();
     },
     onError: (error) => {
+      toast.error(error.message);
       setErrors({ submit: error.message });
     },
   });
@@ -67,10 +70,11 @@ export function CreateAssetModal({
     e.preventDefault();
     if (!validate()) return;
 
-    const payload: CreateAssetPayload = {
+    const payload: CreateAssetDto = {
       name: formData.name.trim(),
       price: parseFloat(formData.price),
       productUrl: formData.productUrl.trim(),
+      imageCount: images.length
     };
 
     await createAsset(payload, images);
@@ -169,7 +173,7 @@ export function CreateAssetModal({
             <ImageUploadZone
               value={images}
               onChange={setImages}
-              maxFiles={10}
+              maxFiles={MAX_IMAGES}
               className="border-dashed border-2 border-outline-variant/50 rounded-xl bg-transparent min-h-55"
             />
           </div>

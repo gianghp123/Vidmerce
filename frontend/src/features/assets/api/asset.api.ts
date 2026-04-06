@@ -1,4 +1,4 @@
-import type { Asset } from "../models/asset.model";
+import type { Asset, AssetUpload } from "../models/asset.model";
 import type { BaseResponse } from "@/lib/base.model";
 import { apiFetch } from "@/lib/api-fetch";
 
@@ -17,4 +17,22 @@ export async function fetchAssets(
 
 export async function fetchAsset(id: string): Promise<BaseResponse<Asset>> {
   return apiFetch<Asset>(`/assets/${id}`);
+}
+
+export async function getImageUploadUrl(
+  assetId: string,
+  fileName: string
+): Promise<BaseResponse<AssetUpload>> {
+  return apiFetch<AssetUpload>(`/assets/${assetId}/images/upload-url`, {
+    query: { fileName },
+  });
+}
+
+export async function deleteAssetImage(
+  assetId: string,
+  imageId: string
+): Promise<BaseResponse<void>> {
+  return apiFetch<void>(`/assets/${assetId}/images/${imageId}`, {
+    method: "DELETE",
+  });
 }

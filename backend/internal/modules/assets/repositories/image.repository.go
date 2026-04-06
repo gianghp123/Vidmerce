@@ -15,8 +15,10 @@ import (
 
 type ImageRepository interface {
 	FindByAssetID(ctx context.Context, assetID string) ([]models.ImageEntity, error)
+	FindByAssetIDAndOrder(ctx context.Context, assetID string, order int) (*models.ImageEntity, error)
 	Create(ctx context.Context, images []models.ImageEntity) error
 	UpdateStatus(ctx context.Context, assetID string, order int, status string) error
+	Delete(ctx context.Context, assetID string, order int) error
 }
 
 type imageRepository struct {
@@ -94,6 +96,50 @@ func (r *imageRepository) UpdateStatus(ctx context.Context, assetID string, orde
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":status": &types.AttributeValueMemberS{Value: status},
 		},
+	})
+	return err
+}
+
+func (r *imageRepository) FindByAssetIDAndOrder(ctx context.Context, assetID string, order int) (*models.ImageEntity, error) {
+	key, err := attributevalue.MarshalMap(map[string]string{
+		"PK": "ASSET#" + assetID,
+		"SK": "IMAGE#" + string(rune('0'+order)),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := r.dbClient.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(core.TableName),
+		Key:       key,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Item == nil {
+		return nil, nil
+	}
+
+	var img models.ImageEntity
+	if err := attributevalue.UnmarshalMap(resp.Item, &img); err != nil {
+		return nil, err
+	}
+	return &img, nil
+}
+
+func (r *imageRepository) Delete(ctx context.Context, assetID string, order int) error {
+	key, err := attributevalue.MarshalMap(map[string]string{
+		"PK": "ASSET#" + assetID,
+		"SK": "IMAGE#" + string(rune('0'+order)),
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = r.dbClient.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: aws.String(core.TableName),
+		Key:       key,
 	})
 	return err
 }

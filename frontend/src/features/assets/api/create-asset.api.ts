@@ -1,18 +1,13 @@
-import type { AssetUploadResponse, AssetConfirmResponse } from "../models/asset.model";
-import type { BaseResponse } from "@/lib/base.model";
 import { apiFetch } from "@/lib/api-fetch";
+import type { BaseResponse } from "@/lib/base.model";
+import type { CreateAssetDto } from "../dtos/create-asset.dto";
+import type { AssetConfirmResponse, AssetUploadResponse } from "../models/asset.model";
 
-export interface CreateAssetPayload {
-  name: string;
-  price: number;
-  productUrl: string;
-  description?: string;
-}
 
 export async function createAssetGetUploadUrl(
-  payload: CreateAssetPayload
+  payload: CreateAssetDto
 ): Promise<BaseResponse<AssetUploadResponse>> {
-  return apiFetch<AssetUploadResponse>("/assets/upload-url", {
+  return apiFetch<AssetUploadResponse>("/assets", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

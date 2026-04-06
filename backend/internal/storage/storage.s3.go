@@ -2,10 +2,12 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go"
 )
 
 type s3Storage struct {
@@ -58,8 +60,27 @@ func (s *s3Storage) ObjectExists(ctx context.Context, key string) (bool, error) 
 		Bucket: aws.String(s.bucket),
 		Key:    aws.String(key),
 	})
+
 	if err != nil {
+		var apiErr smithy.APIError
+		if errors.As(err, &apiErr) {
+			code := apiErr.ErrorCode()
+
+			if code == "NotFound" || code == "NoSuchKey" || code == "AccessDenied" {
+				return false, nil
+			}
+		}
+
 		return false, err
 	}
+
 	return true, nil
+}
+
+func (s *s3Storage) DeleteObject(ctx context.Context, key string) error {
+	_, err := s.client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(key),
+	})
+	return err
 }

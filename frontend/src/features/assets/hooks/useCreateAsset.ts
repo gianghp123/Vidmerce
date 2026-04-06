@@ -1,10 +1,10 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
+  confirmAssetUpload,
   createAssetGetUploadUrl,
   uploadImageToS3,
-  confirmAssetUpload,
-  type CreateAssetPayload,
 } from "../api/create-asset.api";
+import type { CreateAssetDto } from "../dtos/create-asset.dto";
 import type { Asset } from "../models/asset.model";
 
 interface ImageFile {
@@ -24,7 +24,7 @@ export function useCreateAsset(options: UseCreateAssetOptions = {}) {
   const [asset, setAsset] = useState<Asset | null>(null);
 
   const createAsset = useCallback(
-    async (payload: CreateAssetPayload, images: ImageFile[]) => {
+    async (payload: CreateAssetDto, images: ImageFile[]) => {
       setIsLoading(true);
       setError(null);
 
@@ -37,14 +37,30 @@ export function useCreateAsset(options: UseCreateAssetOptions = {}) {
 
         const { assetId, uploads } = uploadUrlResponse.data;
 
-        for (let i = 0; i < images.length; i++) {
-          const upload = uploads.find((u: { order: number }) => u.order === i);
-          if (upload) {
-            await uploadImageToS3(upload.uploadUrl, images[i].file);
-          }
+        const imagesWithOrder = images.map((img, index) => ({
+          ...img,
+          order: index,
+        }));
+
+        const results = await Promise.allSettled(
+          imagesWithOrder.map((img) => {
+            const upload = uploads.find(u => u.order === img.order);
+            if (!upload) return Promise.reject("Missing upload URL");
+
+            return uploadImageToS3(upload.uploadUrl, img.file);
+          })
+        );
+
+        const failed = results.filter(r => r.status === "rejected");
+
+        // still call confirm to let backend decide status
+        if (failed.length > 0) {
+          setError(new Error(`${failed.length} images failed`));
         }
 
+        // all success
         const confirmResponse = await confirmAssetUpload(assetId);
+
 
         if (confirmResponse.error || !confirmResponse.data) {
           throw new Error(confirmResponse.error?.message || "Failed to confirm asset upload");

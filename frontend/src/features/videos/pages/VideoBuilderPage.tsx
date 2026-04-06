@@ -2,6 +2,7 @@ import { LibraryLayout } from "@/components/custom/LibraryLayout";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { SequenceTimeline } from "../components/SequenceTimeline";
 import { VideoConfigCard } from "../components/VideoConfigCard";
 import { VideoPreview } from "../components/VideoPreview";
@@ -23,7 +24,7 @@ export function VideoBuilderPage() {
 
   const { create, isLoading } = useCreateVideo({
     onSuccess: () => navigate("/videos"),
-    onError: (error) => console.error("Failed to create video:", error),
+    onError: (error) => toast.error(error.message),
   });
 
   const handleGenerateVideo = async () => {

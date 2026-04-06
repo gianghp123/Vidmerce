@@ -2,7 +2,8 @@ import { LibraryLayout } from "@/components/custom/LibraryLayout";
 import { CursorPagination } from "@/components/custom/Pagination";
 import { Button } from "@/components/ui/button";
 import { Filter, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { AssetGrid } from "../components/AssetGrid";
 import { CreateAssetModal } from "../components/CreateAssetModal";
 import { useAssets } from "../hooks/useAssets";
@@ -12,8 +13,14 @@ export function AssetLibraryPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const limit = 12;
 
-  const { assets, isLoading, hasMore, fetchNext } = useAssets({ limit });
+  const { assets, isLoading, hasMore, fetchNext, error } = useAssets({ limit });
   const isEmpty = !isLoading && assets.length === 0;
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message);
+    }
+  }, [error]);
 
   return (
     <>

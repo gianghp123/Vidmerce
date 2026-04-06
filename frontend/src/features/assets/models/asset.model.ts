@@ -2,6 +2,8 @@ export type AssetStatus =
   | "UPLOADING"
   | "DRAFT"
   | "COMPLETED"
+  | "PARTIAL"
+  | "FAILED"
 
 export interface AssetImage {
   imageUrl: string;

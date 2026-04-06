@@ -29,3 +29,8 @@ func (m *MockStorage) ObjectExists(ctx context.Context, key string) (bool, error
 	args := m.Called(ctx, key)
 	return args.Bool(0), args.Error(1)
 }
+
+func (m *MockStorage) DeleteObject(ctx context.Context, key string) error {
+	args := m.Called(ctx, key)
+	return args.Error(0)
+}

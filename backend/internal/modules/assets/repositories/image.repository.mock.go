@@ -32,3 +32,16 @@ func (m *MockImageRepository) UpdateStatus(ctx context.Context, assetID string, 
 	args := m.Called(ctx, assetID, order, status)
 	return args.Error(0)
 }
+
+func (m *MockImageRepository) FindByAssetIDAndOrder(ctx context.Context, assetID string, order int) (*models.ImageEntity, error) {
+	args := m.Called(ctx, assetID, order)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.ImageEntity), args.Error(1)
+}
+
+func (m *MockImageRepository) Delete(ctx context.Context, assetID string, order int) error {
+	args := m.Called(ctx, assetID, order)
+	return args.Error(0)
+}

@@ -297,10 +297,12 @@ const docTemplate = `{
                     "type": "string",
                     "enum": [
                         "KEN_BURNS"
-                    ]
+                    ],
+                    "example": "KEN_BURNS"
                 },
                 "title": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Summer Promotion"
                 }
             }
         },
@@ -313,17 +315,20 @@ const docTemplate = `{
             ],
             "properties": {
                 "assetId": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "asset_789"
                 },
                 "duration": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 30
                 },
                 "transition": {
                     "type": "string",
                     "enum": [
                         "FADE",
                         "SLIDE"
-                    ]
+                    ],
+                    "example": "FADE"
                 }
             }
         },

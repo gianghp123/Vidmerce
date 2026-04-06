@@ -16,6 +16,23 @@ resource "aws_s3_bucket" "buckets" {
   }
 }
 
+resource "aws_s3_bucket_cors_configuration" "asset_storage_cors" {
+  bucket = aws_s3_bucket.buckets["asset-storage"].id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["PUT", "POST"]
+    allowed_origins = ["http://localhost:5173"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+
+  cors_rule {
+    allowed_methods = ["GET"]
+    allowed_origins = ["*"]
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "bucket-policies" {
   for_each = aws_s3_bucket.buckets
 

@@ -217,6 +217,179 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/assets/{id}/images": {
+            "post": {
+                "description": "Confirm an uploaded image for an asset",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "assets"
+                ],
+                "summary": "Upload asset image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Upload image request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.UploadAssetImageReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImageIdRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/{id}/images/upload-url": {
+            "get": {
+                "description": "Generate a presigned URL for uploading an image to an asset",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "assets"
+                ],
+                "summary": "Get image upload URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File name",
+                        "name": "fileName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetUpload"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/{id}/images/{imageId}": {
+            "delete": {
+                "description": "Delete an image from an asset",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "assets"
+                ],
+                "summary": "Delete asset image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Asset ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Image ID",
+                        "name": "imageId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -272,6 +445,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetUpload": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetUpload"
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
         "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ConfirmAssetRes": {
             "type": "object",
             "properties": {
@@ -294,6 +484,23 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.CreateAssetRes"
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImageIdRes": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageIdRes"
                 },
                 "error": {},
                 "meta": {
@@ -340,17 +547,33 @@ const docTemplate = `{
             "properties": {
                 "imageCount": {
                     "type": "integer",
-                    "maximum": 10,
-                    "minimum": 1
+                    "maximum": 5,
+                    "minimum": 1,
+                    "example": 3
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "iPhone 15"
                 },
                 "price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 999.99
                 },
                 "productUrl": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://example.com/products/iphone-15"
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.UploadAssetImageReq": {
+            "type": "object",
+            "required": [
+                "fileKey"
+            ],
+            "properties": {
+                "fileKey": {
+                    "type": "string",
+                    "example": "assets/abc123/1.jpg"
                 }
             }
         },
@@ -380,6 +603,23 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetUpload": {
+            "type": "object",
+            "properties": {
+                "expiresIn": {
+                    "type": "integer",
+                    "example": 300
+                },
+                "fileKey": {
+                    "type": "string",
+                    "example": "assets/abc123/1.jpg"
+                },
+                "uploadUrl": {
+                    "type": "string",
+                    "example": "https://s3.amazonaws.com/bucket/asset-url"
                 }
             }
         },
@@ -417,6 +657,15 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageIdRes": {
+            "type": "object",
+            "properties": {
+                "imageId": {
+                    "type": "string",
+                    "example": "img-123"
+                }
+            }
+        },
         "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo": {
             "type": "object",
             "properties": {
@@ -425,6 +674,9 @@ const docTemplate = `{
                 },
                 "order": {
                     "type": "integer"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },

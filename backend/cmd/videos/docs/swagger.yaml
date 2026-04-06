@@ -79,8 +79,10 @@ definitions:
       style:
         enum:
         - KEN_BURNS
+        example: KEN_BURNS
         type: string
       title:
+        example: Summer Promotion
         type: string
     required:
     - items
@@ -90,13 +92,16 @@ definitions:
   github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_req.VideoItemReq:
     properties:
       assetId:
+        example: asset_789
         type: string
       duration:
+        example: 30
         type: integer
       transition:
         enum:
         - FADE
         - SLIDE
+        example: FADE
         type: string
     required:
     - assetId

@@ -41,3 +41,11 @@ func (m *MockAssetRepository) UpdateAssetStatus(ctx context.Context, id string, 
 	args := m.Called(ctx, id, status)
 	return args.Error(0)
 }
+
+func (m *MockAssetRepository) IncrementImageCount(ctx context.Context, id string) (int, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) == nil {
+		return 0, args.Error(1)
+	}
+	return args.Get(0).(int), args.Error(1)
+}

@@ -2,12 +2,14 @@ import { ArrowRight, MoreVertical } from "lucide-react";
 import type { Asset } from "../models/asset.model";
 import { StatusBadge } from "@/components/custom/StatusBadge";
 import { MediaCard } from "@/components/custom/MediaCard";
+import { useNavigate } from "react-router-dom";
 
 interface AssetCardProps {
   asset: Asset;
 }
 
 export function AssetCard({ asset }: AssetCardProps) {
+  const navigate = useNavigate();
   const thumbnailUrl = asset.images?.[0]?.imageUrl || "/placeholder-image.jpg";
   const formattedPrice = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -25,6 +27,7 @@ export function AssetCard({ asset }: AssetCardProps) {
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
       }
+      onClick={() => navigate(`/assets/${asset.assetId}`)}
     >
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-headline font-bold text-lg text-on-surface line-clamp-1">

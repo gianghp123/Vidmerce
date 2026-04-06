@@ -10,6 +10,7 @@ type UploadInfo struct {
 type ImageInfo struct {
 	ImageURL string `json:"imageUrl"`
 	Order    int    `json:"order"`
+	Status   string `json:"status"`
 }
 
 type CreateAssetRes struct {

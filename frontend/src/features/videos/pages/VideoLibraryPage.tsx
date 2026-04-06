@@ -2,8 +2,9 @@ import { LibraryLayout } from "@/components/custom/LibraryLayout";
 import { CursorPagination } from "@/components/custom/Pagination";
 import { Button } from "@/components/ui/button";
 import { Grid3X3, List, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { VideoGrid } from "../components/VideoGrid";
 import { VideoMetadataSidebar } from "../components/VideoMetadataSidebar";
 import { VideoPlayer } from "../components/VideoPlayer";
@@ -17,7 +18,13 @@ export function VideoLibraryPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const limit = 12;
 
-  const { videos, isLoading, hasMore, fetchNext } = useVideos({ limit });
+  const { videos, isLoading, hasMore, fetchNext, error } = useVideos({ limit });
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message);
+    }
+  }, [error]);
 
   const handleVideoClick = (video: Video) => {
     setSelectedVideo(video);
