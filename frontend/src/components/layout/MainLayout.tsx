@@ -8,8 +8,8 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const location = useLocation();
-  const isVideosActive = location.pathname.startsWith("/videos");
-  const isAssetsActive = location.pathname.startsWith("/library") || location.pathname === "/";
+  const isVideosActive = location.pathname.includes("/videos");
+  const isAssetsActive = location.pathname.includes("/assets")|| location.pathname === "/";
 
   return (
     <div className="flex min-h-screen">
@@ -21,7 +21,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         </div>
         <nav className="flex-1 space-y-2">
           <Link
-            to="/library"
+            to="/assets"
             className={`flex items-center gap-3 px-4 py-3 ${isAssetsActive ? "bg-[#EEE7DF] text-[#4B2E2B] font-semibold" : "text-primary/70 hover:bg-[#EEE7DF]"} transition-colors duration-200 active:scale-95 rounded-lg`}
           >
             <Package className="w-5 h-5" />

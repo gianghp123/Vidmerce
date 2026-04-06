@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -62,6 +63,11 @@ func (r *videoRepository) FindAll(ctx context.Context, limit int, lastKey string
 		return nil, err
 	}
 
+	// Strip "VIDEO#" prefix from PK for each item
+	for i := range items {
+		items[i].PK = strings.TrimPrefix(items[i].PK, "VIDEO#")
+	}
+
 	nextCursor, err := core.EncodeCursor(resp.LastEvaluatedKey)
 	if err != nil {
 		return nil, err
@@ -99,6 +105,8 @@ func (r *videoRepository) FindByID(ctx context.Context, id string) (*models.Vide
 	if err := attributevalue.UnmarshalMap(resp.Item, &item); err != nil {
 		return nil, err
 	}
+	// Strip "VIDEO#" prefix from PK to return raw video ID
+	item.PK = strings.TrimPrefix(item.PK, "VIDEO#")
 	return &item, nil
 }
 
@@ -127,5 +135,7 @@ func (r *videoRepository) FindInteractiveByVideoID(ctx context.Context, videoID 
 	if err := attributevalue.UnmarshalMap(resp.Item, &item); err != nil {
 		return nil, err
 	}
+	// Strip "VIDEO#" prefix from PK to return raw video ID
+	item.PK = strings.TrimPrefix(item.PK, "VIDEO#")
 	return &item, nil
 }

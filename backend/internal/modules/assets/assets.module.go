@@ -20,5 +20,8 @@ func RegisterRoutes(r *gin.RouterGroup, dbClient *dynamodb.Client, store storage
 		group.POST("/:id/confirm", ctrl.ConfirmUpload)
 		group.GET("/:id", ctrl.GetAsset)
 		group.GET("", ctrl.ListAssets)
+
+		group.GET("/:id/images/upload-url", ctrl.GetImageUploadUrl)
+		group.DELETE("/:id/images/:imageId", ctrl.DeleteAssetImage)
 	}
 }

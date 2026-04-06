@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -55,6 +57,11 @@ func (r *imageRepository) FindByAssetID(ctx context.Context, assetID string) ([]
 		return nil, err
 	}
 
+	// Strip "ASSET#" prefix from PK for each image
+	for i := range images {
+		images[i].PK = strings.TrimPrefix(images[i].PK, "ASSET#")
+	}
+
 	return images, nil
 }
 
@@ -80,7 +87,7 @@ func (r *imageRepository) Create(ctx context.Context, images []models.ImageEntit
 func (r *imageRepository) UpdateStatus(ctx context.Context, assetID string, order int, status string) error {
 	key, err := attributevalue.MarshalMap(map[string]string{
 		"PK": "ASSET#" + assetID,
-		"SK": "IMAGE#" + string(rune('0'+order)),
+		"SK": fmt.Sprintf("IMAGE#%d", order),
 	})
 	if err != nil {
 		return err
@@ -103,7 +110,7 @@ func (r *imageRepository) UpdateStatus(ctx context.Context, assetID string, orde
 func (r *imageRepository) FindByAssetIDAndOrder(ctx context.Context, assetID string, order int) (*models.ImageEntity, error) {
 	key, err := attributevalue.MarshalMap(map[string]string{
 		"PK": "ASSET#" + assetID,
-		"SK": "IMAGE#" + string(rune('0'+order)),
+		"SK": fmt.Sprintf("IMAGE#%d", order),
 	})
 	if err != nil {
 		return nil, err
@@ -125,13 +132,15 @@ func (r *imageRepository) FindByAssetIDAndOrder(ctx context.Context, assetID str
 	if err := attributevalue.UnmarshalMap(resp.Item, &img); err != nil {
 		return nil, err
 	}
+	// Strip "ASSET#" prefix from PK to return raw asset ID
+	img.PK = strings.TrimPrefix(img.PK, "ASSET#")
 	return &img, nil
 }
 
 func (r *imageRepository) Delete(ctx context.Context, assetID string, order int) error {
 	key, err := attributevalue.MarshalMap(map[string]string{
 		"PK": "ASSET#" + assetID,
-		"SK": "IMAGE#" + string(rune('0'+order)),
+		"SK": fmt.Sprintf("IMAGE#%d", order),
 	})
 	if err != nil {
 		return err

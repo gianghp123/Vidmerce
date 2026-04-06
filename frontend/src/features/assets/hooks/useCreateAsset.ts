@@ -39,7 +39,7 @@ export function useCreateAsset(options: UseCreateAssetOptions = {}) {
 
         const imagesWithOrder = images.map((img, index) => ({
           ...img,
-          order: index,
+          order: index + 1,
         }));
 
         const results = await Promise.allSettled(

@@ -1,4 +1,4 @@
-import { LibraryLayout } from "@/components/custom/LibraryLayout";
+import { ContentLayout } from "@/components/custom/ContentLayout";
 import { CursorPagination } from "@/components/custom/Pagination";
 import { Button } from "@/components/ui/button";
 import { Filter, Plus } from "lucide-react";
@@ -24,7 +24,7 @@ export function AssetLibraryPage() {
 
   return (
     <>
-      <LibraryLayout
+      <ContentLayout
         title="Asset Library"
         description="Manage your shoppable product catalog and creative assets."
         actions={
@@ -63,7 +63,7 @@ export function AssetLibraryPage() {
             </>
           )}
         </div>
-      </LibraryLayout>
+      </ContentLayout>
       <CreateAssetModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}

@@ -1,4 +1,4 @@
-import { LibraryLayout } from "@/components/custom/LibraryLayout";
+import { ContentLayout } from "@/components/custom/ContentLayout";
 import { CursorPagination } from "@/components/custom/Pagination";
 import { Button } from "@/components/ui/button";
 import { Grid3X3, List, Plus } from "lucide-react";
@@ -41,7 +41,7 @@ export function VideoLibraryPage() {
     <>
       {/* Active Video Section */}
       {displayVideo && (
-        <section className="grid grid-cols-12 gap-8">
+        <section className="grid grid-cols-12 gap-8 max-w-7xl mx-auto w-full px-12 pt-12">
           <div className="col-span-12">
             <div className="flex items-baseline gap-4 mb-2">
               <h2 className="font-headline text-4xl font-extrabold text-on-surface tracking-tight">
@@ -68,7 +68,7 @@ export function VideoLibraryPage() {
         </section>
       )}
 
-      <LibraryLayout
+      <ContentLayout
         title="Video Library"
         description="Browse and manage your generated shoppable videos."
         actions={
@@ -127,9 +127,7 @@ export function VideoLibraryPage() {
             </>
           )}
         </div>
-      </LibraryLayout>
-
-
+      </ContentLayout>
     </>
   );
 }

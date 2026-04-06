@@ -28,7 +28,7 @@ export function NotFound({
       )}
 
       {actionLabel && onAction && (
-        <Button onClick={onAction} className="mt-6 gap-2">
+        <Button onClick={onAction} className="mt-6 gap-2 primary-button">
           <ArrowLeft className="w-4 h-4" />
           {actionLabel}
         </Button>

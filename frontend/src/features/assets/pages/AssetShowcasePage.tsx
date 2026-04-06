@@ -1,18 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
-import { useParams } from "react-router-dom";
-import { toast } from "sonner";
-import { Upload, Trash2, ArrowLeft } from "lucide-react";
-import { LibraryLayout } from "@/components/custom/LibraryLayout";
+import { ContentLayout } from "@/components/custom/ContentLayout";
 import { NotFound } from "@/components/custom/NotFound";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { fetchAsset, deleteAssetImage } from "../api/asset.api";
-import { confirmAssetUpload } from "../api/create-asset.api";
-import type { Asset } from "../models/asset.model";
-import { useAssetImages } from "../hooks/useAssetImages";
 import { MAX_IMAGES } from "@/lib/constants";
+import { ArrowLeft, Trash2, Upload } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { deleteAssetImage, fetchAsset } from "../api/asset.api";
+import { useAssetImages } from "../hooks/useAssetImages";
+import type { Asset } from "../models/asset.model";
 
 export function AssetShowcasePage() {
+  const navigator = useNavigate()
   const { id } = useParams<{ id: string }>();
   const [asset, setAsset] = useState<Asset | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +54,6 @@ export function AssetShowcasePage() {
         throw new Error(deleteResponse.error.message);
       }
 
-      await confirmAssetUpload(id);
       toast.success("Image deleted successfully");
       await fetchAssetData();
     } catch (err) {
@@ -83,27 +82,17 @@ export function AssetShowcasePage() {
 
   if (error || !asset) {
     return (
-      <LibraryLayout
-        title="Error"
-        actions={
-          <Button onClick={() => window.history.back()}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-        }
-      >
+      <ContentLayout>
         <NotFound
-          title={error ? "Error" : "Asset Not Found"}
-          description={error || "The asset you're looking for doesn't exist."}
-          actionLabel="Go Back"
-          onAction={() => window.history.back()}
+          actionLabel="Go Back to Asset Library"
+          onAction={() => navigator("/assets/library")}
         />
-      </LibraryLayout>
+      </ContentLayout>
     );
   }
 
   return (
-    <LibraryLayout
+    <ContentLayout
       title={asset.name}
       description={asset.description || "Asset details"}
       actions={
@@ -134,7 +123,7 @@ export function AssetShowcasePage() {
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"
                   >
-                    {asset.productUrl}
+                    See Product Now!
                   </a>
                 </div>
               )}
@@ -144,7 +133,7 @@ export function AssetShowcasePage() {
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Images ({asset.images.length}/{MAX_IMAGES})</h2>
+            <h2 className="text-xl font-semibold">Images ({asset?.images?.length ?? 0}/{MAX_IMAGES})</h2>
             {canUploadFromHook && (
               <label>
                 <input
@@ -155,7 +144,7 @@ export function AssetShowcasePage() {
                   className="hidden"
                   disabled={isUploading}
                 />
-                <Button asChild disabled={isUploading}>
+                <Button asChild disabled={isUploading} className="primary-button">
                   <span className="cursor-pointer gap-2">
                     <Upload className="w-4 h-4" />
                     {isUploading ? "Uploading..." : "Upload Images"}
@@ -165,13 +154,13 @@ export function AssetShowcasePage() {
             )}
           </div>
 
-          {asset.images.length === 0 ? (
+          {(asset?.images?.length ?? 0) === 0 ? (
             <div className="text-center py-10 text-on-surface-variant">
               No images yet. Upload up to {MAX_IMAGES} images.
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {asset.images.map((image, index) => (
+              {asset?.images?.map((image, index) => (
                 <div
                   key={index}
                   className="relative aspect-square rounded-lg overflow-hidden bg-surface-container-high group"
@@ -193,6 +182,6 @@ export function AssetShowcasePage() {
           )}
         </div>
       </div>
-    </LibraryLayout>
+    </ContentLayout>
   );
 }

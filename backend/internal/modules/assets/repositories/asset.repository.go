@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -71,6 +72,11 @@ func (r *assetRepository) FindAll(ctx context.Context, limit int, lastKey string
 		return nil, err
 	}
 
+	// Strip "ASSET#" prefix from PK for each item
+	for i := range items {
+		items[i].PK = strings.TrimPrefix(items[i].PK, "ASSET#")
+	}
+
 	nextCursor, err := core.EncodeCursor(resp.LastEvaluatedKey)
 	if err != nil {
 		return nil, err
@@ -108,6 +114,8 @@ func (r *assetRepository) FindByID(ctx context.Context, id string) (*models.Asse
 	if err := attributevalue.UnmarshalMap(resp.Item, &item); err != nil {
 		return nil, err
 	}
+	// Strip "ASSET#" prefix from PK to return raw asset ID
+	item.PK = strings.TrimPrefix(item.PK, "ASSET#")
 	return &item, nil
 }
 

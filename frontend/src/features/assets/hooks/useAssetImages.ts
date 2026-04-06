@@ -14,7 +14,7 @@ export interface UseAssetImagesOptions {
 export function useAssetImages({ asset, assetId, onRefresh }: UseAssetImagesOptions) {
   const [isUploading, setIsUploading] = useState(false);
 
-  const imageCount = asset?.images.length ?? 0;
+  const imageCount = asset?.images?.length ?? 0;
   const canUpload = imageCount < MAX_IMAGES;
 
   const uploadImages = async (files: FileList | null) => {

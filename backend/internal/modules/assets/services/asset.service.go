@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
@@ -23,6 +25,8 @@ type AssetService interface {
 	ConfirmUpload(ctx context.Context, assetID string) (*res.ConfirmAssetRes, *response.AppError)
 	GetAsset(ctx context.Context, assetID string) (*res.AssetRes, *response.AppError)
 	ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetRes], *response.AppError)
+	GetImageUploadUrl(ctx context.Context, assetID string, fileName string) (*res.UploadInfo, *response.AppError)
+	DeleteAssetImage(ctx context.Context, assetID string, imageID string) *response.AppError
 }
 
 type assetService struct {
@@ -117,48 +121,69 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.
 		return nil, response.NotFound("asset not found")
 	}
 
-	if asset.Status != enums.StatusAssetUploading {
-		return nil, response.BadRequest("asset is not in UPLOADING state")
+	// ✅ get images from DB (source of truth)
+	dbImages, err := s.imageRepo.FindByAssetID(ctx, assetID)
+	if err != nil {
+		return nil, response.Internal("failed to get images")
 	}
 
-	imageCount := asset.ImageCount
-	images := make([]res.ImageInfo, 0, imageCount)
+	images := make([]res.ImageInfo, 0, len(dbImages))
 	uploadedCount := 0
 
-	for i := 1; i <= imageCount; i++ {
-		fileKey := fmt.Sprintf("assets/%s/%d.jpg", assetID, i)
+	for _, img := range dbImages {
+		fileKey := img.FileKey
 
 		exists, err := s.storage.ObjectExists(ctx, fileKey)
 		if err != nil {
 			return nil, response.Internal("failed to verify upload")
 		}
 
-		if !exists {
-			return nil, response.BadRequest(fmt.Sprintf("image %d/%d not uploaded", i, imageCount))
-		}
-
 		imageUrl := utils.GetCDNURL(fileKey)
 
-		err = s.imageRepo.UpdateStatus(ctx, assetID, i, string(enums.StatusImageCompleted))
-		if err != nil {
+		var status string
+
+		if exists {
+			status = string(enums.StatusImageCompleted)
+			uploadedCount++
+		} else {
+			status = string(enums.StatusImageFailed)
+		}
+
+		// ✅ update per image
+		if err := s.imageRepo.UpdateStatus(ctx, assetID, img.Order, status); err != nil {
 			return nil, response.Internal("failed to update image status")
 		}
 
 		images = append(images, res.ImageInfo{
 			ImageURL: imageUrl,
-			Order:    i,
+			Order:    img.Order,
+			Status:   status,
 		})
-		uploadedCount++
 	}
 
-	err = s.assetRepo.UpdateAssetStatus(ctx, assetID, string(enums.StatusAssetCompleted))
-	if err != nil {
+	// ✅ determine asset status dynamically
+	total := len(dbImages)
+
+	var finalStatus string
+
+	switch {
+	case total == 0:
+		finalStatus = string(enums.StatusAssetFailed)
+	case uploadedCount == total:
+		finalStatus = string(enums.StatusAssetCompleted)
+	case uploadedCount > 0:
+		finalStatus = string(enums.StatusAssetPartial)
+	default:
+		finalStatus = string(enums.StatusAssetFailed)
+	}
+
+	if err := s.assetRepo.UpdateAssetStatus(ctx, assetID, finalStatus); err != nil {
 		return nil, response.Internal("failed to update asset status")
 	}
 
 	return &res.ConfirmAssetRes{
 		AssetID: assetID,
-		Status:  string(enums.StatusAssetCompleted),
+		Status:  finalStatus,
 		Images:  images,
 	}, nil
 }
@@ -188,13 +213,8 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 		}
 	}
 
-	assetIDOnly := asset.PK
-	if len(assetIDOnly) > 7 && assetIDOnly[:7] == "ASSET#" {
-		assetIDOnly = assetIDOnly[7:]
-	}
-
 	return &res.AssetRes{
-		AssetID:    assetIDOnly,
+		AssetID:    assetID,
 		Name:       asset.Name,
 		Price:      asset.Price,
 		Images:     imageInfos,
@@ -217,9 +237,6 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 	assets := make([]res.AssetRes, 0, len(result.Data))
 	for _, item := range result.Data {
 		assetID := item.PK
-		if len(assetID) > 7 && assetID[:7] == "ASSET#" {
-			assetID = assetID[7:]
-		}
 
 		images, err := s.imageRepo.FindByAssetID(ctx, assetID)
 		if err != nil {
@@ -253,4 +270,134 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 		Data: assets,
 		Meta: result.Meta,
 	}, nil
+}
+
+func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fileName string) (*res.UploadInfo, *response.AppError) {
+	asset, err := s.assetRepo.FindByID(ctx, assetID)
+	if err != nil {
+		return nil, response.Internal("failed to find asset")
+	}
+	if asset == nil {
+		return nil, response.NotFound("asset not found")
+	}
+
+	// 1. Fetch ALL existing images for this asset
+	images, err := s.imageRepo.FindByAssetID(ctx, assetID)
+	if err != nil {
+		return nil, response.Internal("failed to fetch images")
+	}
+
+	activeCount := 0
+	newOrder := 1
+
+	// 2. Calculate Count and Order simultaneously
+	for _, img := range images {
+		// Prevent DynamoDB SK collisions by always finding the absolute highest order
+		if img.Order >= newOrder {
+			newOrder = img.Order + 1
+		}
+
+		// Only count images that are successful or currently in progress
+		if img.Status == enums.StatusImageCompleted || img.Status == enums.StatusImageUploading {
+			activeCount++
+		}
+	}
+
+	// 3. Enforce the limit based ONLY on active images
+	if activeCount >= MaxImagesPerAsset {
+		return nil, response.BadRequest(fmt.Sprintf("maximum %d images per asset reached", MaxImagesPerAsset))
+	}
+
+	// 4. Extract extension safely
+	ext := filepath.Ext(fileName)
+	if ext == "" {
+		ext = ".jpg"
+	}
+
+	// fileKey will now safely be assets/123/6.jpg if images 1-5 exist but 1 failed
+	fileKey := fmt.Sprintf("assets/%s/%d%s", assetID, newOrder, ext)
+	contentType := "image/jpeg"
+	switch strings.ToLower(ext) {
+	case ".png":
+		contentType = "image/png"
+	case ".webp":
+		contentType = "image/webp"
+	}
+
+	uploadURL, err := s.storage.GeneratePresignedUploadURL(ctx, fileKey, contentType, 5*time.Minute)
+	if err != nil {
+		return nil, response.Internal("failed to generate upload URL")
+	}
+
+	imageEntity := models.ImageEntity{
+		BaseItem: models.BaseItem{
+			PK: "ASSET#" + assetID,
+			SK: fmt.Sprintf("IMAGE#%d", newOrder),
+		},
+		FileKey: fileKey,
+		Status:  enums.StatusImageUploading,
+		Order:   newOrder,
+	}
+
+	if err := s.imageRepo.Create(ctx, []models.ImageEntity{imageEntity}); err != nil {
+		return nil, response.Internal("failed to create image record")
+	}
+
+	// IMPORTANT: update asset status back to UPLOADING
+	_ = s.assetRepo.UpdateAssetStatus(ctx, assetID, string(enums.StatusAssetUploading))
+
+	return &res.UploadInfo{
+		UploadURL: uploadURL,
+		FileKey:   fileKey,
+		Order:     newOrder,
+		ExpiresIn: 300,
+	}, nil
+}
+
+func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, imageID string) *response.AppError {
+	asset, err := s.assetRepo.FindByID(ctx, assetID)
+	if err != nil {
+		return response.Internal("failed to find asset")
+	}
+	if asset == nil {
+		return response.NotFound("asset not found")
+	}
+
+	images, err := s.imageRepo.FindByAssetID(ctx, assetID)
+	if err != nil {
+		return response.Internal("failed to find images")
+	}
+
+	var targetOrder int
+	found := false
+	for _, img := range images {
+		imgID := fmt.Sprintf("img-%s-%d", assetID, img.Order)
+		if imgID == imageID {
+			targetOrder = img.Order
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return response.NotFound("image not found")
+	}
+
+	img, err := s.imageRepo.FindByAssetIDAndOrder(ctx, assetID, targetOrder)
+	if err != nil {
+		return response.Internal("failed to get image")
+	}
+	if img == nil {
+		return response.NotFound("image not found")
+	}
+
+	if err := s.storage.DeleteObject(ctx, img.FileKey); err != nil {
+		return response.Internal("failed to delete file from storage")
+	}
+
+	if err := s.imageRepo.Delete(ctx, assetID, targetOrder); err != nil {
+		return response.Internal("failed to delete image record")
+	}
+
+	return nil
 }

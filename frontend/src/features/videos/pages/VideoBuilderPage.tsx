@@ -1,4 +1,4 @@
-import { LibraryLayout } from "@/components/custom/LibraryLayout";
+import { ContentLayout } from "@/components/custom/ContentLayout";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -46,12 +46,11 @@ export function VideoBuilderPage() {
   const canGenerate = title.trim().length > 0 && sequences.length > 0;
 
   return (
-    <LibraryLayout
+    <ContentLayout
       title="Create Video"
       description="Curate your brand story by stitching high-quality assets into a seamless editorial experience."
     >
       <div className="grid grid-cols-12 gap-10 items-start">
-        
         {/* LEFT */}
         <div className="col-span-12 lg:col-span-8 space-y-8">
           <VideoConfigCard
@@ -116,6 +115,6 @@ export function VideoBuilderPage() {
           </div>
         </div>
       </div>
-    </LibraryLayout>
+    </ContentLayout>
   );
 }
