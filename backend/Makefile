@@ -1,9 +1,9 @@
-DIST_DIR=../infra/functions
+DIST_DIR=../infra/artifacts/lambdas
 ZIP_NAME=function.zip
 
-FUNCTIONS=cmd/assets cmd/videos
+FUNCTIONS=assets videos
 
-.PHONY: all build zip clean
+.PHONY: all build zip swag-init
 
 all: build zip
 
@@ -22,10 +22,6 @@ zip:
 		echo "Zipping $$fn..."; \
 		cd $(DIST_DIR)/$$fn && zip -q $(ZIP_NAME) bootstrap && cd - > /dev/null; \
 	done
-
-clean:
-	@echo "Cleaning..."
-	rm -rf $(DIST_DIR)
 
 
 swag-init:

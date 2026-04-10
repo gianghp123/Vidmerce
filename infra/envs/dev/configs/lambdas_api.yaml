@@ -2,14 +2,14 @@ lambda_functions:
   assets:
     function_name: assets_lambda
     handler: bootstrap
-    filename: functions/cmd/assets/function.zip
+    filename: artifacts/lambdas/assets/function.zip
     runtime: provided.al2023
     s3_bucket_key: asset-storage
     db_table_key: MediaProjectTable
   videos:
     function_name: videos_lambda
     handler: bootstrap
-    filename: functions/cmd/videos/function.zip
+    filename: artifacts/lambdas/videos/function.zip
     runtime: provided.al2023
     s3_bucket_key: asset-storage
     db_table_key: MediaProjectTable

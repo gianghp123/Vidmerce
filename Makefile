@@ -25,7 +25,7 @@ export TF_LOG      = DEBUG
 export TF_LOG_PATH = terraform.log
 endif
 
-.PHONY: build deploy plan destroy clean setup-local setup-cloud test-lambda-local
+.PHONY: build deploy plan destroy setup-local setup-cloud test-lambda-local
 
 # --- Helpers ---
 
@@ -71,9 +71,6 @@ build:
 
 	@echo "--- Building Frontend for $(ENV) ---"
 	cd ../$(FRONTEND_DIR) && npm run build
-
-clean:
-	cd $(BACKEND_DIR) && $(MAKE) clean
 
 plan:
 	@cd $(TERRAFORM_PATH) && $(TF_CMD) plan -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)

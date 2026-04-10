@@ -44,7 +44,7 @@ export function VideoConfigCard({ title, style, onTitleChange, onStyleChange }: 
             Video Style
           </Label>
           <Select value={style} onValueChange={onStyleChange}>
-            <SelectTrigger className="bg-white border-none rounded-xl px-4 text-on-surface shadow-sm">
+            <SelectTrigger className="h-12! w-full bg-white border-none rounded-xl px-4 text-on-surface shadow-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
