@@ -27,6 +27,8 @@ type AssetRepository interface {
 	Create(ctx context.Context, asset models.AssetEntity) error
 	UpdateAssetStatus(ctx context.Context, id string, status string) error
 	IncrementImageCount(ctx context.Context, id string) (int, error)
+	TransactWriteItems(ctx context.Context, items ...interface{}) error
+	DBClient() *dynamodb.Client
 }
 
 type assetRepository struct {
@@ -35,6 +37,10 @@ type assetRepository struct {
 
 func NewAssetRepository(dbClient *dynamodb.Client) AssetRepository {
 	return &assetRepository{dbClient: dbClient}
+}
+
+func (r *assetRepository) DBClient() *dynamodb.Client {
+	return r.dbClient
 }
 
 func (r *assetRepository) FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error) {
@@ -205,4 +211,29 @@ func (r *assetRepository) IncrementImageCount(ctx context.Context, id string) (i
 		return 0, err
 	}
 	return result.ImageCount, nil
+}
+
+func (r *assetRepository) TransactWriteItems(ctx context.Context, items ...interface{}) error {
+	if len(items) == 0 {
+		return nil
+	}
+
+	transactItems := make([]types.TransactWriteItem, len(items))
+	for i, item := range items {
+		itemMap, err := attributevalue.MarshalMap(item)
+		if err != nil {
+			return err
+		}
+		transactItems[i] = types.TransactWriteItem{
+			Put: &types.Put{
+				TableName: aws.String(core.TableName),
+				Item:      itemMap,
+			},
+		}
+	}
+
+	_, err := r.dbClient.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+		TransactItems: transactItems,
+	})
+	return err
 }

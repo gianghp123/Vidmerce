@@ -25,5 +25,5 @@ zip:
 
 
 swag-init:
-	@swag init -g cmd/assets/main.go -d . -o ./cmd/assets/docs --exclude "internal/modules/videos" --parseDependency --parseInternal
-	@swag init -g cmd/videos/main.go -d . -o ./cmd/videos/docs --exclude "internal/modules/assets" --parseDependency --parseInternal
+	@swag init -g cmd/assets/main.go -d . -o ./cmd/assets/docs --exclude "internal/modules/campaigns" --parseDependency --parseInternal
+	@swag init -g cmd/campaigns/main.go -d . -o ./cmd/campaigns/docs --exclude "internal/modules/assets" --parseDependency --parseInternal

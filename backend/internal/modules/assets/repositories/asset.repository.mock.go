@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
 	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
 	"github.com/stretchr/testify/mock"
@@ -14,6 +15,14 @@ type MockAssetRepository struct {
 
 func NewMockAssetRepository() *MockAssetRepository {
 	return &MockAssetRepository{}
+}
+
+func (m *MockAssetRepository) DBClient() *dynamodb.Client {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil
+	}
+	return args.Get(0).(*dynamodb.Client)
 }
 
 func (m *MockAssetRepository) FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error) {
@@ -48,4 +57,9 @@ func (m *MockAssetRepository) IncrementImageCount(ctx context.Context, id string
 		return 0, args.Error(1)
 	}
 	return args.Get(0).(int), args.Error(1)
+}
+
+func (m *MockAssetRepository) TransactWriteItems(ctx context.Context, items ...interface{}) error {
+	args := m.Called(ctx, items)
+	return args.Error(0)
 }

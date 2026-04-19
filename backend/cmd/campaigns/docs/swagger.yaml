@@ -1,0 +1,291 @@
+basePath: /api
+definitions:
+  github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any:
+    properties:
+      data: {}
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
+        description: optional
+    type: object
+  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes
+  : properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.CampaignRes'
+        type: array
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
+        description: optional
+    type: object
+  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.CampaignRes'
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
+        description: optional
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta:
+    properties:
+      has_more:
+        type: boolean
+      last_key:
+        description: Cursor-style (DynamoDB, etc.)
+      limit:
+        type: integer
+      page:
+        description: SQL-style pagination
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.CreateCampaignReq:
+    properties:
+      assetId:
+        example: uuid
+        type: string
+    required:
+    - assetId
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.Slide:
+    properties:
+      imageRole:
+        type: string
+      overlayText:
+        type: string
+      s3Key:
+        type: string
+      slideNumber:
+        type: integer
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateCampaignReq:
+    properties:
+      storyboard:
+        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateStoryboard'
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateStoryboard:
+    properties:
+      bodyCopy:
+        type: string
+      cta:
+        type: string
+      headline:
+        type: string
+      slides:
+        items:
+          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.Slide'
+        type: array
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.CampaignRes:
+    properties:
+      assetId:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      storyboard:
+        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Storyboard'
+      updatedAt:
+        type: string
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Slide:
+    properties:
+      imageRole:
+        type: string
+      overlayText:
+        type: string
+      s3Key:
+        type: string
+      slideNumber:
+        type: integer
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Storyboard:
+    properties:
+      bodyCopy:
+        type: string
+      cta:
+        type: string
+      headline:
+        type: string
+      slides:
+        items:
+          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Slide'
+        type: array
+    type: object
+host: localhost:3001
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is the Vidmerce Campaigns API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Campaigns API
+  version: "1.0"
+paths:
+  /campaigns:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of campaigns
+      parameters:
+      - description: Number of items per page
+        format: int32
+        in: query
+        name: limit
+        type: integer
+      - description: Pagination cursor for next page
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+      summary: List campaigns
+      tags:
+      - campaigns
+    post:
+      consumes:
+      - application/json
+      description: Create a new campaign with an asset and generate a job
+      parameters:
+      - description: Create campaign request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.CreateCampaignReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+      summary: Create a new campaign
+      tags:
+      - campaigns
+  /campaigns/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a campaign and its active jobs
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+      summary: Delete campaign
+      tags:
+      - campaigns
+    get:
+      consumes:
+      - application/json
+      description: Retrieve detailed information about a specific campaign
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+      summary: Get campaign by ID
+      tags:
+      - campaigns
+    patch:
+      consumes:
+      - application/json
+      description: Update campaign storyboard or slide order
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update campaign request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateCampaignReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+      summary: Update campaign
+      tags:
+      - campaigns
+schemes:
+- http
+swagger: "2.0"

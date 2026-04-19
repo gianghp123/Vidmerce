@@ -3,6 +3,7 @@ package enums
 type AssetStatus string
 
 const (
+	StatusAssetImporting AssetStatus = "IMPORTING"
 	StatusAssetUploading AssetStatus = "UPLOADING"
 	StatusAssetDraft     AssetStatus = "DRAFT"
 	StatusAssetCompleted AssetStatus = "COMPLETED"

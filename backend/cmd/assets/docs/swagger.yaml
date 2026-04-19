@@ -9,11 +9,11 @@ definitions:
         - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
         description: optional
     type: object
-  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetRes
+  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetPreviewRes
   : properties:
       data:
         items:
-          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetRes'
+          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetPreviewRes'
         type: array
       error: {}
       meta:
@@ -61,10 +61,10 @@ definitions:
         - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
         description: optional
     type: object
-  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImageIdRes
+  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImportAssetRes
   : properties:
       data:
-        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageIdRes'
+        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImportAssetRes'
       error: {}
       meta:
         allOf:
@@ -108,13 +108,30 @@ definitions:
     - price
     - productUrl
     type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.UploadAssetImageReq:
+  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.ImportAssetReq:
     properties:
-      fileKey:
-        example: assets/abc123/1.jpg
+      productUrl:
+        example: https://...
         type: string
     required:
-    - fileKey
+    - productUrl
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetPreviewRes:
+    properties:
+      assetId:
+        type: string
+      createdAt:
+        type: string
+      image:
+        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo'
+      name:
+        type: string
+      price:
+        type: number
+      productUrl:
+        type: string
+      status:
+        type: string
     type: object
   github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetRes:
     properties:
@@ -169,19 +186,22 @@ definitions:
           $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.UploadInfo'
         type: array
     type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageIdRes:
-    properties:
-      imageId:
-        example: img-123
-        type: string
-    type: object
   github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo:
     properties:
+      imageId:
+        type: string
       imageUrl:
         type: string
       order:
         type: integer
       status:
+        type: string
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImportAssetRes:
+    properties:
+      assetId:
+        type: string
+      jobId:
         type: string
     type: object
   github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.UploadInfo:
@@ -230,7 +250,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetRes'
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetPreviewRes'
         "400":
           description: Bad Request
           schema:
@@ -337,45 +357,6 @@ paths:
       summary: Confirm asset upload
       tags:
       - assets
-  /assets/{id}/images:
-    post:
-      consumes:
-      - application/json
-      description: Confirm an uploaded image for an asset
-      parameters:
-      - description: Asset ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Upload image request
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.UploadAssetImageReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImageIdRes'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
-      summary: Upload asset image
-      tags:
-      - assets
   /assets/{id}/images/{imageId}:
     delete:
       consumes:
@@ -450,6 +431,36 @@ paths:
           schema:
             $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
       summary: Get image upload URL
+      tags:
+      - assets
+  /assets/import:
+    post:
+      consumes:
+      - application/json
+      description: Create an asset with IMPORTING status and a SCRAPE_PRODUCT job
+      parameters:
+      - description: Import asset request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.ImportAssetReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImportAssetRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+      summary: Import asset from product URL
       tags:
       - assets
 schemes:

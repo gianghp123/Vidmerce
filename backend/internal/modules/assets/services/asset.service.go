@@ -11,6 +11,7 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
 	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
+	"github.com/gianghp123/Vidmerce/backend/internal/database/repositories"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets/dtos/req"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets/dtos/res"
 	imageRepo "github.com/gianghp123/Vidmerce/backend/internal/modules/assets/repositories"
@@ -26,6 +27,7 @@ type AssetService interface {
 	ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetPreviewRes], *response.AppError)
 	GetImageUploadUrl(ctx context.Context, assetID string, fileName string) (*res.UploadInfo, *response.AppError)
 	DeleteAssetImage(ctx context.Context, assetID string, imageID string) *response.AppError
+	ImportAsset(ctx context.Context, req req.ImportAssetReq) (*res.ImportAssetRes, *response.AppError)
 }
 
 type assetService struct {
@@ -48,21 +50,15 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 	}
 
 	assetID := uuid.New().String()
-	now := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 
 	asset := models.AssetEntity{
-		BaseItem: models.BaseItem{
-			PK:     "ASSET#" + assetID,
-			SK:     "METADATA",
-			GSI1PK: "ENTITY#ASSET",
-			GSI1SK: assetID,
-		},
+		BaseItem:   utils.BuildAssetBaseItem(assetID),
 		Name:       req.Name,
 		Price:      req.Price,
 		ProductURL: req.ProductURL,
 		Status:     enums.StatusAssetUploading,
 		ImageCount: imageCount,
-		CreatedAt:  now,
+		CreatedAt:  utils.Now(),
 	}
 
 	uploads := make([]res.UploadInfo, 0, imageCount)
@@ -85,8 +81,8 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 
 		images = append(images, models.ImageEntity{
 			BaseItem: models.BaseItem{
-				PK: "ASSET#" + assetID,
-				SK: fmt.Sprintf("IMAGE#%d", i),
+				PK: utils.BuildPK(enums.EntityTypeAsset, assetID),
+				SK: fmt.Sprintf("%s#%d", enums.EntityTypeImage, i),
 			},
 			FileKey: fileKey,
 			Status:  enums.StatusImageUploading,
@@ -94,14 +90,16 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 		})
 	}
 
-	err := s.imageRepo.Create(ctx, images)
-	if err != nil {
-		return nil, response.Internal("failed to create image records")
+	baseRepo := repositories.NewBaseRepository(s.assetRepo.DBClient())
+
+	items := make([]interface{}, 0, len(images)+1)
+	items = append(items, asset)
+	for _, img := range images {
+		items = append(items, img)
 	}
 
-	err = s.assetRepo.Create(ctx, asset)
-	if err != nil {
-		return nil, response.Internal("failed to create asset")
+	if err := baseRepo.TransactWriteItems(ctx, items...); err != nil {
+		return nil, response.Internal("failed to create asset and images: " + err.Error())
 	}
 
 	return &res.CreateAssetRes{
@@ -328,8 +326,8 @@ func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fi
 
 	imageEntity := models.ImageEntity{
 		BaseItem: models.BaseItem{
-			PK: "ASSET#" + assetID,
-			SK: fmt.Sprintf("IMAGE#%d", newOrder),
+			PK: utils.BuildPK(enums.EntityTypeAsset, assetID),
+			SK: fmt.Sprintf("%s#%d", enums.EntityTypeImage, newOrder),
 		},
 		FileKey: fileKey,
 		Status:  enums.StatusImageUploading,
@@ -388,4 +386,35 @@ func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, ima
 	}
 
 	return nil
+}
+
+func (s *assetService) ImportAsset(ctx context.Context, req req.ImportAssetReq) (*res.ImportAssetRes, *response.AppError) {
+	assetID := uuid.New().String()
+	jobID := uuid.New().String()
+
+	asset := models.AssetEntity{
+		BaseItem:   utils.BuildAssetBaseItem(assetID),
+		ProductURL: req.ProductURL,
+		Status:     enums.StatusAssetImporting,
+		CreatedAt:  utils.Now(),
+	}
+
+	job := models.JobEntity{
+		BaseItem:  utils.BuildJobBaseItem(jobID),
+		TargetID:  assetID,
+		Type:      enums.TypeJobScrapeProduct,
+		Status:    enums.StatusJobPending,
+		Payload:   map[string]any{"url": req.ProductURL},
+		CreatedAt: utils.Now(),
+	}
+
+	baseRepo := repositories.NewBaseRepository(s.assetRepo.DBClient())
+	if err := baseRepo.TransactWriteItems(ctx, asset, job); err != nil {
+		return nil, response.Internal("failed to create import job: " + err.Error())
+	}
+
+	return &res.ImportAssetRes{
+		AssetID: assetID,
+		JobID:   jobID,
+	}, nil
 }

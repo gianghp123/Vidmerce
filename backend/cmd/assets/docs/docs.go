@@ -56,7 +56,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetRes"
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetPreviewRes"
                         }
                     },
                     "400": {
@@ -101,6 +101,52 @@ const docTemplate = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_CreateAssetRes"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/assets/import": {
+            "post": {
+                "description": "Create an asset with IMPORTING status and a SCRAPE_PRODUCT job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "assets"
+                ],
+                "summary": "Import asset from product URL",
+                "parameters": [
+                    {
+                        "description": "Import asset request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.ImportAssetReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImportAssetRes"
                         }
                     },
                     "400": {
@@ -195,65 +241,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ConfirmAssetRes"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/assets/{id}/images": {
-            "post": {
-                "description": "Confirm an uploaded image for an asset",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "assets"
-                ],
-                "summary": "Upload asset image",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Asset ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Upload image request",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.UploadAssetImageReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImageIdRes"
                         }
                     },
                     "400": {
@@ -408,13 +395,13 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetRes": {
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetPreviewRes": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetRes"
+                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetPreviewRes"
                     }
                 },
                 "error": {},
@@ -496,11 +483,11 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImageIdRes": {
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImportAssetRes": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageIdRes"
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImportAssetRes"
                 },
                 "error": {},
                 "meta": {
@@ -565,15 +552,41 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.UploadAssetImageReq": {
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.ImportAssetReq": {
             "type": "object",
             "required": [
-                "fileKey"
+                "productUrl"
             ],
             "properties": {
-                "fileKey": {
+                "productUrl": {
                     "type": "string",
-                    "example": "assets/abc123/1.jpg"
+                    "example": "https://..."
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetPreviewRes": {
+            "type": "object",
+            "properties": {
+                "assetId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "image": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "productUrl": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -657,18 +670,12 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageIdRes": {
-            "type": "object",
-            "properties": {
-                "imageId": {
-                    "type": "string",
-                    "example": "img-123"
-                }
-            }
-        },
         "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo": {
             "type": "object",
             "properties": {
+                "imageId": {
+                    "type": "string"
+                },
                 "imageUrl": {
                     "type": "string"
                 },
@@ -676,6 +683,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImportAssetRes": {
+            "type": "object",
+            "properties": {
+                "assetId": {
+                    "type": "string"
+                },
+                "jobId": {
                     "type": "string"
                 }
             }

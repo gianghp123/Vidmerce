@@ -24,9 +24,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/videos": {
+        "/campaigns": {
             "get": {
-                "description": "Get a paginated list of videos",
+                "description": "Get a paginated list of campaigns",
                 "consumes": [
                     "application/json"
                 ],
@@ -34,9 +34,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "videos"
+                    "campaigns"
                 ],
-                "summary": "List videos",
+                "summary": "List campaigns",
                 "parameters": [
                     {
                         "type": "integer",
@@ -47,8 +47,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Pagination cursor (last video ID) for next page",
-                        "name": "last_key",
+                        "description": "Pagination cursor for next page",
+                        "name": "cursor",
                         "in": "query"
                     }
                 ],
@@ -56,13 +56,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_VideoResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes"
                         }
                     },
                     "500": {
@@ -74,7 +68,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create a video by combining multiple assets with transitions",
+                "description": "Create a new campaign with an asset and generate a job",
                 "consumes": [
                     "application/json"
                 ],
@@ -82,17 +76,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "videos"
+                    "campaigns"
                 ],
-                "summary": "Create a new video",
+                "summary": "Create a new campaign",
                 "parameters": [
                     {
-                        "description": "Create video request",
+                        "description": "Create campaign request",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_req.CreateVideoReq"
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.CreateCampaignReq"
                         }
                     }
                 ],
@@ -100,7 +94,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_CreateVideoRes"
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes"
                         }
                     },
                     "400": {
@@ -118,9 +112,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/videos/{id}": {
+        "/campaigns/{id}": {
             "get": {
-                "description": "Retrieve detailed information about a specific video including hotspots",
+                "description": "Retrieve detailed information about a specific campaign",
                 "consumes": [
                     "application/json"
                 ],
@@ -128,13 +122,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "videos"
+                    "campaigns"
                 ],
-                "summary": "Get video by ID",
+                "summary": "Get campaign by ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Video ID",
+                        "description": "Campaign ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -144,13 +138,100 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_VideoDetailResponse"
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a campaign and its active jobs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "campaigns"
+                ],
+                "summary": "Delete campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update campaign storyboard or slide order",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "campaigns"
+                ],
+                "summary": "Update campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update campaign request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateCampaignReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes"
                         }
                     },
                     "404": {
@@ -170,21 +251,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_gianghp123_Vidmerce_backend_internal_core_enums.VideoStatus": {
-            "type": "string",
-            "enum": [
-                "PENDING",
-                "PROCESSING",
-                "COMPLETED",
-                "FAILED"
-            ],
-            "x-enum-varnames": [
-                "StatusPending",
-                "StatusProcessing",
-                "StatusCompleted",
-                "StatusFailed"
-            ]
-        },
         "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any": {
             "type": "object",
             "properties": {
@@ -200,13 +266,13 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_VideoResponse": {
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.VideoResponse"
+                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.CampaignRes"
                     }
                 },
                 "error": {},
@@ -220,28 +286,11 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_CreateVideoRes": {
+        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.CreateVideoRes"
-                },
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res_VideoDetailResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.VideoDetailResponse"
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.CampaignRes"
                 },
                 "error": {},
                 "meta": {
@@ -278,157 +327,120 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_req.CreateVideoReq": {
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.CreateCampaignReq": {
             "type": "object",
             "required": [
-                "items",
-                "style",
-                "title"
-            ],
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_req.VideoItemReq"
-                    }
-                },
-                "style": {
-                    "type": "string",
-                    "enum": [
-                        "KEN_BURNS"
-                    ],
-                    "example": "KEN_BURNS"
-                },
-                "title": {
-                    "type": "string",
-                    "example": "Summer Promotion"
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_req.VideoItemReq": {
-            "type": "object",
-            "required": [
-                "assetId",
-                "duration",
-                "transition"
+                "assetId"
             ],
             "properties": {
                 "assetId": {
                     "type": "string",
-                    "example": "asset_789"
-                },
-                "duration": {
-                    "type": "integer",
-                    "example": 30
-                },
-                "transition": {
-                    "type": "string",
-                    "enum": [
-                        "FADE",
-                        "SLIDE"
-                    ],
-                    "example": "FADE"
+                    "example": "uuid"
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.AssetSnapshotDTO": {
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.Slide": {
             "type": "object",
             "properties": {
-                "asset_id": {
+                "imageRole": {
                     "type": "string"
                 },
-                "image_url": {
+                "overlayText": {
                     "type": "string"
                 },
-                "name": {
+                "s3Key": {
                     "type": "string"
                 },
-                "price": {
-                    "type": "number"
-                },
-                "product_url": {
-                    "type": "string"
+                "slideNumber": {
+                    "type": "integer"
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.CreateVideoRes": {
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateCampaignReq": {
             "type": "object",
             "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "status": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_enums.VideoStatus"
-                },
-                "videoId": {
-                    "type": "string"
+                "storyboard": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateStoryboard"
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.HotspotResponse": {
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateStoryboard": {
             "type": "object",
             "properties": {
-                "asset": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.AssetSnapshotDTO"
-                },
-                "x": {
-                    "type": "number"
-                },
-                "y": {
-                    "type": "number"
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.VideoDetailResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
+                "bodyCopy": {
                     "type": "string"
                 },
-                "hotspots": {
+                "cta": {
+                    "type": "string"
+                },
+                "headline": {
+                    "type": "string"
+                },
+                "slides": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.HotspotResponse"
+                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.Slide"
                     }
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.CampaignRes": {
+            "type": "object",
+            "properties": {
+                "assetId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_enums.VideoStatus"
-                },
-                "thumbnail_url": {
                     "type": "string"
                 },
-                "title": {
-                    "type": "string"
+                "storyboard": {
+                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Storyboard"
                 },
-                "video_url": {
+                "updatedAt": {
                     "type": "string"
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_videos_dtos_res.VideoResponse": {
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Slide": {
             "type": "object",
             "properties": {
-                "created_at": {
+                "imageRole": {
                     "type": "string"
                 },
-                "id": {
+                "overlayText": {
                     "type": "string"
                 },
-                "status": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_enums.VideoStatus"
-                },
-                "thumbnail_url": {
+                "s3Key": {
                     "type": "string"
                 },
-                "title": {
+                "slideNumber": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Storyboard": {
+            "type": "object",
+            "properties": {
+                "bodyCopy": {
                     "type": "string"
                 },
-                "video_url": {
+                "cta": {
                     "type": "string"
+                },
+                "headline": {
+                    "type": "string"
+                },
+                "slides": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Slide"
+                    }
                 }
             }
         }
@@ -441,8 +453,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:3001",
 	BasePath:         "/api",
 	Schemes:          []string{"http"},
-	Title:            "Swagger Videos API",
-	Description:      "This is the Vidmerce Videos API",
+	Title:            "Swagger Campaigns API",
+	Description:      "This is the Vidmerce Campaigns API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

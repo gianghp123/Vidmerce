@@ -200,3 +200,30 @@ func (ctrl *AssetController) DeleteAssetImage(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response.Success[any](nil))
 }
+
+// ImportAsset godoc
+// @Summary      Import asset from product URL
+// @Description  Create an asset with IMPORTING status and a SCRAPE_PRODUCT job
+// @Tags         assets
+// @Accept       json
+// @Produce      json
+// @Param        body  body      req.ImportAssetReq  true  "Import asset request"
+// @Success      201   {object}  response.BaseResponse[res.ImportAssetRes]
+// @Failure      400   {object}  response.BaseResponse[any]
+// @Failure      500   {object}  response.BaseResponse[any]
+// @Router       /assets/import [post]
+func (ctrl *AssetController) ImportAsset(c *gin.Context) {
+	var body req.ImportAssetReq
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest(err.Error())))
+		return
+	}
+
+	result, appErr := ctrl.svc.ImportAsset(c.Request.Context(), body)
+	if appErr != nil {
+		c.JSON(appErr.Code, response.Fail(appErr))
+		return
+	}
+
+	c.JSON(http.StatusCreated, response.Success(result))
+}

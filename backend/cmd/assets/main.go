@@ -19,6 +19,7 @@ import (
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gianghp123/Vidmerce/backend/internal/configs"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/campaigns"
 	"github.com/gianghp123/Vidmerce/backend/internal/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -55,6 +56,7 @@ func setup() (*gin.Engine, *configs.AWSConfig) {
 	})
 	api := r.Group("/api")
 	assets.RegisterRoutes(api, dbClient, s3Client)
+	campaigns.RegisterRoutes(api, dbClient)
 
 	return r, awsCfg
 }

@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/gianghp123/Vidmerce/backend/cmd/videos/docs" // swagger docs initialization
+	_ "github.com/gianghp123/Vidmerce/backend/cmd/campaigns/docs" // swagger docs initialization
 	"github.com/gin-contrib/cors"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -17,7 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gianghp123/Vidmerce/backend/internal/configs"
-	"github.com/gianghp123/Vidmerce/backend/internal/modules/videos"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/campaigns"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -25,7 +25,6 @@ import (
 var ginLambda *ginadapter.GinLambdaV2
 
 func setup() (*gin.Engine, *configs.AWSConfig) {
-
 	if _, err := os.Stat(".env"); err == nil {
 		log.Println("Found .env file, loading local configurations...")
 		_ = godotenv.Load()
@@ -36,58 +35,31 @@ func setup() (*gin.Engine, *configs.AWSConfig) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cfg, err := config.LoadDefaultConfig(ctx)
+	sdkConfig, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		log.Fatalf("unable to load SDK config: %v", err)
+		log.Fatalf("Failed to load AWS SDK config: %v", err)
 	}
 
-	dbClient := dynamodb.NewFromConfig(cfg, awsCfg.DynamoDBOptions)
+	dbClient := dynamodb.NewFromConfig(sdkConfig, awsCfg.DynamoDBOptions)
 
 	r := gin.Default()
 	r.OPTIONS("/*any", func(c *gin.Context) {
 		c.Status(200)
 	})
 	api := r.Group("/api")
-	videos.RegisterRoutes(api, dbClient)
+	campaigns.RegisterRoutes(api, dbClient)
 
 	return r, awsCfg
 }
 
 func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	log.Println("Full request", req)
 	return ginLambda.ProxyWithContext(ctx, req)
 }
 
-func main() {
-	router, awsCfg := setup()
-
-	if awsCfg.IsLocal {
-		// Swagger is configured via swag annotations in main.go and generated docs
-		// The docs.SwaggerInfo is already properly set by swag init
-		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-		router.Use(cors.New(cors.Config{
-			AllowOrigins:     []string{"*"}, // hoặc domain cụ thể
-			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-			ExposeHeaders:    []string{"Content-Length"},
-			AllowCredentials: true,
-			MaxAge:           12 * time.Hour,
-		}))
-		// Run as a standard HTTP server locally
-		log.Printf("Running in LOCAL SERVER mode on http://localhost:3001")
-		if err := router.Run(":3001"); err != nil {
-			log.Fatalf("Failed to run local server: %v", err)
-		}
-	} else {
-		// Run as an AWS Lambda function
-		log.Printf("Running in LAMBDA mode")
-		ginLambda = ginadapter.NewV2(router)
-		lambda.Start(Handler)
-	}
-}
-
-// @title           Swagger Videos API
+// @title           Swagger Campaigns API
 // @version         1.0
-// @description     This is the Vidmerce Videos API
+// @description     This is the Vidmerce Campaigns API
 // @termsOfService  http://swagger.io/terms/
 
 // @contact.name   API Support
@@ -100,3 +72,27 @@ func main() {
 // @host      localhost:3001
 // @BasePath  /api
 // @schemes   http
+func main() {
+	router, awsCfg := setup()
+
+	if awsCfg.IsLocal {
+		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+		router.Use(cors.New(cors.Config{
+			AllowOrigins:     []string{"*"},
+			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+			ExposeHeaders:    []string{"Content-Length"},
+			AllowCredentials: true,
+			MaxAge:           12 * time.Hour,
+		}))
+		log.Printf("Running in LOCAL SERVER mode on http://localhost:3001")
+		if err := router.Run(":3001"); err != nil {
+			log.Fatalf("Failed to run local server: %v", err)
+		}
+	} else {
+		log.Printf("Running in LAMBDA mode")
+		ginLambda = ginadapter.NewV2(router)
+		lambda.Start(Handler)
+	}
+}
