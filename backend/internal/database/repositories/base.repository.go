@@ -53,8 +53,8 @@ func (r *baseRepository) TransactWriteItems(ctx context.Context, items ...interf
 
 func (r *baseRepository) GetItem(ctx context.Context, pk, sk string) (map[string]types.AttributeValue, error) {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": pk,
-		"SK": sk,
+		"Pk": pk,
+		"Sk": sk,
 	})
 	if err != nil {
 		return nil, err
@@ -86,8 +86,8 @@ func (r *baseRepository) PutItem(ctx context.Context, item interface{}) error {
 
 func (r *baseRepository) DeleteItem(ctx context.Context, pk, sk string) error {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": pk,
-		"SK": sk,
+		"Pk": pk,
+		"Sk": sk,
 	})
 	if err != nil {
 		return err

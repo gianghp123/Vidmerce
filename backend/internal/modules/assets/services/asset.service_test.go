@@ -177,13 +177,13 @@ func TestCreateAsset(t *testing.T) {
 func TestConfirmUpload(t *testing.T) {
 	uploadingAsset := &models.AssetEntity{
 		BaseItem: models.BaseItem{
-			PK: "ASSET#test-asset-id",
-			SK: "METADATA",
+			Pk: "ASSET#test-asset-id",
+			Sk: "METADATA",
 		},
 		Name:       "Test Asset",
 		Price:      99.99,
 		ProductURL: "https://example.com",
-		Status:     enums.StatusAssetUploading,
+		Status:     enums.AssetStatusUploading,
 		ImageCount: 1,
 		CreatedAt:  "2024-01-01T00:00:00Z",
 	}
@@ -230,10 +230,10 @@ func TestConfirmUpload(t *testing.T) {
 			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository, _ *storage.MockStorage) {
 				asset := &models.AssetEntity{
 					BaseItem: models.BaseItem{
-						PK: "ASSET#test-id",
-						SK: "METADATA",
+						Pk: "ASSET#test-id",
+						Sk: "METADATA",
 					},
-					Status:     enums.StatusAssetCompleted,
+					Status:     enums.AssetStatusCompleted,
 					ImageCount: 1,
 				}
 				assetRepo.On("FindByID", mock.Anything, "test-id").Return(asset, nil)
@@ -314,13 +314,13 @@ func TestConfirmUpload(t *testing.T) {
 func TestGetAsset(t *testing.T) {
 	asset := &models.AssetEntity{
 		BaseItem: models.BaseItem{
-			PK: "ASSET#test-id",
-			SK: "METADATA",
+			Pk: "ASSET#test-id",
+			Sk: "METADATA",
 		},
 		Name:       "Test Asset",
 		Price:      99.99,
 		ProductURL: "https://example.com",
-		Status:     enums.StatusAssetCompleted,
+		Status:     enums.AssetStatusCompleted,
 		ImageCount: 1,
 		CreatedAt:  "2024-01-01T00:00:00Z",
 	}
@@ -341,11 +341,11 @@ func TestGetAsset(t *testing.T) {
 				images := []models.ImageEntity{
 					{
 						BaseItem: models.BaseItem{
-							PK: "ASSET#test-id",
-							SK: "IMAGE#1",
+							Pk: "ASSET#test-id",
+							Sk: "IMAGE#1",
 						},
 						FileKey: "assets/test-id/1.jpg",
-						Status:  enums.StatusImageCompleted,
+						Status:  enums.ImageStatusCompleted,
 						Order:   1,
 					},
 				}
@@ -390,33 +390,33 @@ func TestGetAsset(t *testing.T) {
 			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository) {
 				asset := &models.AssetEntity{
 					BaseItem: models.BaseItem{
-						PK: "ASSET#test-id",
-						SK: "METADATA",
+						Pk: "ASSET#test-id",
+						Sk: "METADATA",
 					},
 					Name:       "Test Asset",
 					Price:      99.99,
 					ProductURL: "https://example.com",
-					Status:     enums.StatusAssetCompleted,
+					Status:     enums.AssetStatusCompleted,
 					ImageCount: 2,
 					CreatedAt:  "2024-01-01T00:00:00Z",
 				}
 				images := []models.ImageEntity{
 					{
 						BaseItem: models.BaseItem{
-							PK: "ASSET#test-id",
-							SK: "IMAGE#1",
+							Pk: "ASSET#test-id",
+							Sk: "IMAGE#1",
 						},
 						FileKey: "assets/test-id/1.jpg",
-						Status:  enums.StatusImageCompleted,
+						Status:  enums.ImageStatusCompleted,
 						Order:   1,
 					},
 					{
 						BaseItem: models.BaseItem{
-							PK: "ASSET#test-id",
-							SK: "IMAGE#2",
+							Pk: "ASSET#test-id",
+							Sk: "IMAGE#2",
 						},
 						FileKey: "assets/test-id/2.jpg",
-						Status:  enums.StatusImageUploading,
+						Status:  enums.ImageStatusUploading,
 						Order:   2,
 					},
 				}
@@ -476,15 +476,15 @@ func TestListAssets(t *testing.T) {
 				assets := []models.AssetEntity{
 					{
 						BaseItem: models.BaseItem{
-							PK:     "ASSET#asset-1",
-							SK:     "METADATA",
-							GSI1PK: "ENTITY#ASSET",
-							GSI1SK: "asset-1",
+							Pk:     "ASSET#asset-1",
+							Sk:     "METADATA",
+							Gsi1Pk: "ENTITY#ASSET",
+							Gsi1Sk: "asset-1",
 						},
 						Name:       "Asset 1",
 						Price:      99.99,
 						ProductURL: "https://example.com/1",
-						Status:     enums.StatusAssetCompleted,
+						Status:     enums.AssetStatusCompleted,
 						ImageCount: 1,
 						CreatedAt:  "2024-01-01T00:00:00Z",
 					},
@@ -492,11 +492,11 @@ func TestListAssets(t *testing.T) {
 				images := []models.ImageEntity{
 					{
 						BaseItem: models.BaseItem{
-							PK: "ASSET#asset-1",
-							SK: "IMAGE#1",
+							Pk: "ASSET#asset-1",
+							Sk: "IMAGE#1",
 						},
 						FileKey: "assets/asset-1/1.jpg",
-						Status:  enums.StatusImageCompleted,
+						Status:  enums.ImageStatusCompleted,
 						Order:   1,
 					},
 				}
@@ -541,15 +541,15 @@ func TestListAssets(t *testing.T) {
 				assets := []models.AssetEntity{
 					{
 						BaseItem: models.BaseItem{
-							PK:     "ASSET#asset-1",
-							SK:     "METADATA",
-							GSI1PK: "ENTITY#ASSET",
-							GSI1SK: "asset-1",
+							Pk:     "ASSET#asset-1",
+							Sk:     "METADATA",
+							Gsi1Pk: "ENTITY#ASSET",
+							Gsi1Sk: "asset-1",
 						},
 						Name:       "Asset 1",
 						Price:      99.99,
 						ProductURL: "https://example.com/1",
-						Status:     enums.StatusAssetCompleted,
+						Status:     enums.AssetStatusCompleted,
 						ImageCount: 1,
 						CreatedAt:  "2024-01-01T00:00:00Z",
 					},
@@ -572,15 +572,15 @@ func TestListAssets(t *testing.T) {
 				assets := []models.AssetEntity{
 					{
 						BaseItem: models.BaseItem{
-							PK:     "ASSET#asset-1",
-							SK:     "METADATA",
-							GSI1PK: "ENTITY#ASSET",
-							GSI1SK: "asset-1",
+							Pk:     "ASSET#asset-1",
+							Sk:     "METADATA",
+							Gsi1Pk: "ENTITY#ASSET",
+							Gsi1Sk: "asset-1",
 						},
 						Name:       "Asset 1",
 						Price:      99.99,
 						ProductURL: "https://example.com/1",
-						Status:     enums.StatusAssetCompleted,
+						Status:     enums.AssetStatusCompleted,
 						ImageCount: 2,
 						CreatedAt:  "2024-01-01T00:00:00Z",
 					},
@@ -588,20 +588,20 @@ func TestListAssets(t *testing.T) {
 				images := []models.ImageEntity{
 					{
 						BaseItem: models.BaseItem{
-							PK: "ASSET#asset-1",
-							SK: "IMAGE#1",
+							Pk: "ASSET#asset-1",
+							Sk: "IMAGE#1",
 						},
 						FileKey: "assets/asset-1/1.jpg",
-						Status:  enums.StatusImageCompleted,
+						Status:  enums.ImageStatusCompleted,
 						Order:   1,
 					},
 					{
 						BaseItem: models.BaseItem{
-							PK: "ASSET#asset-1",
-							SK: "IMAGE#2",
+							Pk: "ASSET#asset-1",
+							Sk: "IMAGE#2",
 						},
 						FileKey: "assets/asset-1/2.jpg",
-						Status:  enums.StatusImageCompleted,
+						Status:  enums.ImageStatusCompleted,
 						Order:   2,
 					},
 				}

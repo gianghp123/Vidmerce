@@ -3,10 +3,10 @@ import { toast } from "sonner";
 import { getImageUploadUrl } from "../api/asset.api";
 import { uploadImageToS3, confirmAssetUpload } from "../api/create-asset.api";
 import { MAX_IMAGES } from "@/lib/constants";
-import type { Asset } from "../models/asset.model";
+import type { IAsset } from "../../../lib/models/asset.model";
 
 export interface UseAssetImagesOptions {
-  asset: Asset | null;
+  asset: IAsset | null;
   assetId: string;
   onRefresh: () => Promise<void>;
 }

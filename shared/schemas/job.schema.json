@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "job.schema.json",
+  "title": "Job",
+  "description": "Job entity for background processing",
+  "allOf": [
+    { "$ref": "base-item.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "targetId": {
+          "type": "string",
+          "description": "Target entity ID"
+        },
+        "type": {
+          "$ref": "enums.schema.json#/definitions/JobType"
+        },
+        "status": {
+          "$ref": "enums.schema.json#/definitions/JobStatus"
+        },
+        "payload": {
+          "type": "object",
+          "description": "Job payload data",
+          "additionalProperties": true
+        },
+        "errorLog": {
+          "type": "string",
+          "description": "Error log if failed"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["type", "status", "createdAt"]
+    }
+  ]
+}

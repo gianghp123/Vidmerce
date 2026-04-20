@@ -1,21 +1,22 @@
 package utils
 
 import (
-	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
-	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
 	"time"
+
+	"github.com/gianghp123/Vidmerce/backend/internal/core"
+	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
 )
 
-func BuildPK(entityType enums.EntityType, id string) string {
-	return string(entityType) + enums.KeySeparator + id
+func BuildPk(entityType core.EntityType, id string) string {
+	return string(entityType) + core.KeySeparator + id
 }
 
-func BuildBaseItem(entityType enums.EntityType, id string, gsi1PKPrefix enums.GSI1PKPrefix) models.BaseItem {
+func BuildBaseItem(entityType core.EntityType, id string, gsi1PkPrefix core.Gsi1PkPrefix) models.BaseItem {
 	return models.BaseItem{
-		PK:     BuildPK(entityType, id),
-		SK:     string(enums.SortKeyMetadata),
-		GSI1PK: string(gsi1PKPrefix),
-		GSI1SK: id,
+		Pk:     BuildPk(entityType, id),
+		Sk:     string(core.SortKeyMetadata),
+		Gsi1Pk: string(gsi1PkPrefix),
+		Gsi1Sk: id,
 	}
 }
 
@@ -26,13 +27,13 @@ func GetCurrentTimestamp() string {
 var Now = GetCurrentTimestamp
 
 func BuildAssetBaseItem(id string) models.BaseItem {
-	return BuildBaseItem(enums.EntityTypeAsset, id, enums.GSI1PKEntityAsset)
+	return BuildBaseItem(core.EntityTypeAsset, id, core.Gsi1PkEntityAsset)
 }
 
 func BuildJobBaseItem(id string) models.BaseItem {
-	return BuildBaseItem(enums.EntityTypeJob, id, enums.GSI1PKEntityJob)
+	return BuildBaseItem(core.EntityTypeJob, id, core.Gsi1PkEntityJob)
 }
 
 func BuildCampaignBaseItem(id string) models.BaseItem {
-	return BuildBaseItem(enums.EntityTypeCampaign, id, enums.GSI1PKEntityCampaign)
+	return BuildBaseItem(core.EntityTypeCampaign, id, core.Gsi1PkEntityCampaign)
 }

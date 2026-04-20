@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchAssets, fetchAsset, type FetchAssetsParams } from "../api/asset.api";
-import type { Asset, AssetPreview } from "../models/asset.model";
+import type { IAsset } from "../../../lib/models/asset.model";
 import { useCursorPagination } from "@/lib/hooks/useCursorPagination";
 
 export interface UseAssetsOptions extends FetchAssetsParams {
@@ -36,7 +36,7 @@ export function useAssets(options: UseAssetsOptions = {}) {
     hasMore,
     fetchInitial,
     fetchNext,
-  } = useCursorPagination<AssetPreview>({
+  } = useCursorPagination<IAsset>({
     fetchFn: fetchAssetsFn,
     enabled,
   });
@@ -56,7 +56,7 @@ export function useAssets(options: UseAssetsOptions = {}) {
 }
 
 export function useAsset(id: string, enabled = true) {
-  const [asset, setAsset] = useState<Asset | null>(null);
+  const [asset, setAsset] = useState<IAsset | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 

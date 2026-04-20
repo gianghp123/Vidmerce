@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "storyboard.schema.json",
+  "title": "Storyboard",
+  "description": "Storyboard for campaign generation",
+  "allOf": [
+    { "$ref": "base-item.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "description": "Associated job ID"
+        },
+        "headline": {
+          "type": "string",
+          "description": "Campaign headline"
+        },
+        "bodyCopy": {
+          "type": "string",
+          "description": "Campaign body copy"
+        },
+        "cta": {
+          "type": "string",
+          "description": "Call to action text"
+        },
+        "slides": {
+          "type": "array",
+          "items": {
+            "$ref": "slide.schema.json"
+          },
+          "description": "Storyboard slides"
+        }
+      },
+      "required": ["jobId", "headline", "bodyCopy", "cta", "slides"]
+    }
+  ]
+}

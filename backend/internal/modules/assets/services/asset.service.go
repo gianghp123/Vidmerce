@@ -56,7 +56,7 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 		Name:       req.Name,
 		Price:      req.Price,
 		ProductURL: req.ProductURL,
-		Status:     enums.StatusAssetUploading,
+		Status:     enums.AssetStatusUploading,
 		ImageCount: imageCount,
 		CreatedAt:  utils.Now(),
 	}
@@ -81,11 +81,11 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 
 		images = append(images, models.ImageEntity{
 			BaseItem: models.BaseItem{
-				PK: utils.BuildPK(enums.EntityTypeAsset, assetID),
-				SK: fmt.Sprintf("%s#%d", enums.EntityTypeImage, i),
+				Pk: utils.BuildPk(core.EntityTypeAsset, assetID),
+				Sk: fmt.Sprintf("%s#%d", core.EntityTypeImage, i),
 			},
 			FileKey: fileKey,
-			Status:  enums.StatusImageUploading,
+			Status:  enums.ImageStatusUploading,
 			Order:   i,
 		})
 	}
@@ -104,7 +104,7 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 
 	return &res.CreateAssetRes{
 		AssetID: assetID,
-		Status:  string(enums.StatusAssetUploading),
+		Status:  string(enums.AssetStatusUploading),
 		Uploads: uploads,
 	}, nil
 }
@@ -140,10 +140,10 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.
 		var status string
 
 		if exists {
-			status = string(enums.StatusImageCompleted)
+			status = string(enums.ImageStatusCompleted)
 			uploadedCount++
 		} else {
-			status = string(enums.StatusImageFailed)
+			status = string(enums.ImageStatusFailed)
 		}
 
 		// ✅ update per image
@@ -165,13 +165,13 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.
 
 	switch {
 	case total == 0:
-		finalStatus = string(enums.StatusAssetFailed)
+		finalStatus = string(enums.AssetStatusFailed)
 	case uploadedCount == total:
-		finalStatus = string(enums.StatusAssetCompleted)
+		finalStatus = string(enums.AssetStatusCompleted)
 	case uploadedCount > 0:
-		finalStatus = string(enums.StatusAssetPartial)
+		finalStatus = string(enums.AssetStatusPartial)
 	default:
-		finalStatus = string(enums.StatusAssetFailed)
+		finalStatus = string(enums.AssetStatusFailed)
 	}
 
 	if err := s.assetRepo.UpdateAssetStatus(ctx, assetID, finalStatus); err != nil {
@@ -201,10 +201,10 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 
 	imageInfos := make([]res.ImageInfo, 0)
 	for _, img := range images {
-		if img.Status == enums.StatusImageCompleted {
+		if img.Status == enums.ImageStatusCompleted {
 			imageURL := utils.GetCDNURL(img.FileKey)
 			imageInfos = append(imageInfos, res.ImageInfo{
-				ImageID:  img.SK,
+				ImageID:  img.Sk,
 				ImageURL: imageURL,
 				Order:    img.Order,
 				Status:   string(img.Status),
@@ -235,7 +235,7 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 
 	assets := make([]res.AssetPreviewRes, 0, len(result.Data))
 	for _, item := range result.Data {
-		assetID := item.PK
+		assetID := item.Pk
 
 		img, err := s.imageRepo.FindOneCompletedImageByAssetId(ctx, assetID)
 		if err != nil {
@@ -287,13 +287,13 @@ func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fi
 
 	// 2. Calculate Count and Order simultaneously
 	for _, img := range images {
-		// Prevent DynamoDB SK collisions by always finding the absolute highest order
+		// Prevent DynamoDB Sk collisions by always finding the absolute highest order
 		if img.Order >= newOrder {
 			newOrder = img.Order + 1
 		}
 
 		// Only count images that are successful or currently in progress
-		if img.Status == enums.StatusImageCompleted || img.Status == enums.StatusImageUploading {
+		if img.Status == enums.ImageStatusCompleted || img.Status == enums.ImageStatusUploading {
 			activeCount++
 		}
 	}
@@ -326,11 +326,11 @@ func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fi
 
 	imageEntity := models.ImageEntity{
 		BaseItem: models.BaseItem{
-			PK: utils.BuildPK(enums.EntityTypeAsset, assetID),
-			SK: fmt.Sprintf("%s#%d", enums.EntityTypeImage, newOrder),
+			Pk: utils.BuildPk(core.EntityTypeAsset, assetID),
+			Sk: fmt.Sprintf("%s#%d", core.EntityTypeImage, newOrder),
 		},
 		FileKey: fileKey,
-		Status:  enums.StatusImageUploading,
+		Status:  enums.ImageStatusUploading,
 		Order:   newOrder,
 	}
 
@@ -339,7 +339,7 @@ func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fi
 	}
 
 	// IMPORTANT: update asset status back to UPLOADING
-	_ = s.assetRepo.UpdateAssetStatus(ctx, assetID, string(enums.StatusAssetUploading))
+	_ = s.assetRepo.UpdateAssetStatus(ctx, assetID, string(enums.AssetStatusUploading))
 
 	return &res.UploadInfo{
 		UploadURL: uploadURL,
@@ -365,7 +365,7 @@ func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, ima
 
 	var targetImg *models.ImageEntity // adjust type if needed
 	for _, img := range images {
-		if img.SK == imageID {
+		if img.Sk == imageID {
 			targetImg = &img
 			break
 		}
@@ -381,7 +381,7 @@ func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, ima
 	}
 
 	// delete DB record
-	if err := s.imageRepo.Delete(ctx, assetID, targetImg.SK); err != nil {
+	if err := s.imageRepo.Delete(ctx, assetID, targetImg.Sk); err != nil {
 		return response.Internal("failed to delete image record")
 	}
 
@@ -395,15 +395,15 @@ func (s *assetService) ImportAsset(ctx context.Context, req req.ImportAssetReq) 
 	asset := models.AssetEntity{
 		BaseItem:   utils.BuildAssetBaseItem(assetID),
 		ProductURL: req.ProductURL,
-		Status:     enums.StatusAssetImporting,
+		Status:     enums.AssetStatusImporting,
 		CreatedAt:  utils.Now(),
 	}
 
 	job := models.JobEntity{
 		BaseItem:  utils.BuildJobBaseItem(jobID),
-		TargetID:  assetID,
-		Type:      enums.TypeJobScrapeProduct,
-		Status:    enums.StatusJobPending,
+		TargetID:  &assetID,
+		Type:      enums.JobTypeScrapeProduct,
+		Status:    enums.JobStatusPending,
 		Payload:   map[string]any{"url": req.ProductURL},
 		CreatedAt: utils.Now(),
 	}

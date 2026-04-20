@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ImageUploadZone } from "@/components/custom/ImageUploadZone";
 import { useCreateAsset } from "../hooks/useCreateAsset";
-import type { CreateAssetDto } from "../dtos/create-asset.dto";
+import type { CreateAssetDto } from "../dtos/req/create-asset.req.dto";
 import { MAX_IMAGES } from "@/lib/constants";
 
 interface ImageFile {

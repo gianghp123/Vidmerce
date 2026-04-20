@@ -33,8 +33,8 @@ func NewImageRepository(dbClient *dynamodb.Client) ImageRepository {
 }
 
 func (r *imageRepository) FindByAssetID(ctx context.Context, assetID string) ([]models.ImageEntity, error) {
-	keyCond := expression.Key("PK").Equal(expression.Value("ASSET#" + assetID)).
-		And(expression.Key("SK").BeginsWith("IMAGE#"))
+	keyCond := expression.Key("Pk").Equal(expression.Value("ASSET#" + assetID)).
+		And(expression.Key("Sk").BeginsWith("IMAGE#"))
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
 		return nil, err
@@ -60,8 +60,8 @@ func (r *imageRepository) FindByAssetID(ctx context.Context, assetID string) ([]
 
 	// Strip "ASSET#" and "IMAGE#" prefixes
 	for i := range images {
-		images[i].PK = strings.TrimPrefix(images[i].PK, "ASSET#")
-		images[i].SK = strings.TrimPrefix(images[i].SK, "IMAGE#")
+		images[i].Pk = strings.TrimPrefix(images[i].Pk, "ASSET#")
+		images[i].Sk = strings.TrimPrefix(images[i].Sk, "IMAGE#")
 	}
 
 	return images, nil
@@ -77,7 +77,7 @@ func (r *imageRepository) Create(ctx context.Context, images []models.ImageEntit
 		_, err = r.dbClient.PutItem(ctx, &dynamodb.PutItemInput{
 			TableName:           aws.String(core.TableName),
 			Item:                item,
-			ConditionExpression: aws.String("attribute_not_exists(PK)"),
+			ConditionExpression: aws.String("attribute_not_exists(Pk)"),
 		})
 		if err != nil {
 			return err
@@ -88,8 +88,8 @@ func (r *imageRepository) Create(ctx context.Context, images []models.ImageEntit
 
 func (r *imageRepository) UpdateStatus(ctx context.Context, assetID string, order int, status string) error {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": "ASSET#" + assetID,
-		"SK": fmt.Sprintf("IMAGE#%d", order),
+		"Pk": "ASSET#" + assetID,
+		"Sk": fmt.Sprintf("IMAGE#%d", order),
 	})
 	if err != nil {
 		return err
@@ -111,8 +111,8 @@ func (r *imageRepository) UpdateStatus(ctx context.Context, assetID string, orde
 
 func (r *imageRepository) FindByAssetIDAndOrder(ctx context.Context, assetID string, order int) (*models.ImageEntity, error) {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": "ASSET#" + assetID,
-		"SK": fmt.Sprintf("IMAGE#%d", order),
+		"Pk": "ASSET#" + assetID,
+		"Sk": fmt.Sprintf("IMAGE#%d", order),
 	})
 	if err != nil {
 		return nil, err
@@ -135,15 +135,15 @@ func (r *imageRepository) FindByAssetIDAndOrder(ctx context.Context, assetID str
 		return nil, err
 	}
 	// Strip "ASSET#" and "IMAGE#" prefixes
-	img.PK = strings.TrimPrefix(img.PK, "ASSET#")
-	img.SK = strings.TrimPrefix(img.SK, "IMAGE#")
+	img.Pk = strings.TrimPrefix(img.Pk, "ASSET#")
+	img.Sk = strings.TrimPrefix(img.Sk, "IMAGE#")
 	return &img, nil
 }
 
 func (r *imageRepository) Delete(ctx context.Context, assetID string, imageID string) error {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": "ASSET#" + assetID,
-		"SK": fmt.Sprintf("IMAGE#%s", imageID),
+		"Pk": "ASSET#" + assetID,
+		"Sk": fmt.Sprintf("IMAGE#%s", imageID),
 	})
 	if err != nil {
 		return err
@@ -157,8 +157,8 @@ func (r *imageRepository) Delete(ctx context.Context, assetID string, imageID st
 }
 
 func (r *imageRepository) FindOneCompletedImageByAssetId(ctx context.Context, assetID string) (*models.ImageEntity, error) {
-	keyCond := expression.Key("PK").Equal(expression.Value("ASSET#" + assetID)).
-		And(expression.Key("SK").BeginsWith("IMAGE#"))
+	keyCond := expression.Key("Pk").Equal(expression.Value("ASSET#" + assetID)).
+		And(expression.Key("Sk").BeginsWith("IMAGE#"))
 	filter := expression.Name("status").Equal(expression.Value("COMPLETED"))
 
 	expr, err := expression.NewBuilder().
@@ -193,7 +193,7 @@ func (r *imageRepository) FindOneCompletedImageByAssetId(ctx context.Context, as
 		return nil, err
 	}
 
-	img.PK = strings.TrimPrefix(img.PK, "ASSET#")
-	img.SK = strings.TrimPrefix(img.SK, "IMAGE#")
+	img.Pk = strings.TrimPrefix(img.Pk, "ASSET#")
+	img.Sk = strings.TrimPrefix(img.Sk, "IMAGE#")
 	return &img, nil
 }

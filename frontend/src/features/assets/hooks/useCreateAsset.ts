@@ -4,8 +4,8 @@ import {
   createAssetGetUploadUrl,
   uploadImageToS3,
 } from "../api/create-asset.api";
-import type { CreateAssetDto } from "../dtos/create-asset.dto";
-import type { Asset } from "../models/asset.model";
+import type { CreateAssetDto } from "../dtos/req/create-asset.req.dto";
+import type { IAsset } from "../../../lib/models/asset.model";
 
 interface ImageFile {
   id: string;
@@ -14,14 +14,14 @@ interface ImageFile {
 }
 
 interface UseCreateAssetOptions {
-  onSuccess?: (asset: Asset) => void;
+  onSuccess?: (asset: IAsset) => void;
   onError?: (error: Error) => void;
 }
 
 export function useCreateAsset(options: UseCreateAssetOptions = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [asset, setAsset] = useState<Asset | null>(null);
+  const [asset, setAsset] = useState<IAsset | null>(null);
 
   const createAsset = useCallback(
     async (payload: CreateAssetDto, images: ImageFile[]) => {
@@ -66,8 +66,8 @@ export function useCreateAsset(options: UseCreateAssetOptions = {}) {
           throw new Error(confirmResponse.error?.message || "Failed to confirm asset upload");
         }
 
-        setAsset(confirmResponse.data as unknown as Asset);
-        options.onSuccess?.(confirmResponse.data as unknown as Asset);
+        setAsset(confirmResponse.data as unknown as IAsset);
+        options.onSuccess?.(confirmResponse.data as unknown as IAsset);
       } catch (err) {
         const error = err instanceof Error ? err : new Error("Failed to create asset");
         setError(error);

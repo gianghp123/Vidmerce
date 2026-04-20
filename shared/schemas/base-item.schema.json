@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "base-item.schema.json",
+  "title": "BaseItem",
+  "description": "Base item with DynamoDB partition and sort keys",
+  "type": "object",
+  "properties": {
+    "Pk": {
+      "type": "string",
+      "description": "Partition key"
+    },
+    "Sk": {
+      "type": "string",
+      "description": "Sort key"
+    },
+    "Gsi1Pk": {
+      "type": "string",
+      "description": "Global secondary index 1 partition key"
+    },
+    "Gsi1Sk": {
+      "type": "string",
+      "description": "Global secondary index 1 sort key"
+    }
+  },
+  "required": ["Pk", "Sk"]
+}

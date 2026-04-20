@@ -1,13 +1,11 @@
 import { apiFetch } from "@/lib/api-fetch";
 import type { BaseResponse } from "@/lib/base.model";
-import type { CreateAssetDto } from "../dtos/create-asset.dto";
-import type { AssetConfirmResponse, AssetUploadResponse } from "../models/asset.model";
-
+import type { CreateAssetDto } from "../dtos/req/create-asset.req.dto";
 
 export async function createAssetGetUploadUrl(
   payload: CreateAssetDto
-): Promise<BaseResponse<AssetUploadResponse>> {
-  return apiFetch<AssetUploadResponse>("/assets", {
+): Promise<BaseResponse<{ assetId: string; uploads: Array<{ order: number; uploadUrl: string }> }>> {
+  return apiFetch<{ assetId: string; uploads: Array<{ order: number; uploadUrl: string }> }>("/assets", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -35,8 +33,8 @@ export async function uploadImageToS3(
 
 export async function confirmAssetUpload(
   assetId: string
-): Promise<BaseResponse<AssetConfirmResponse>> {
-  return apiFetch<AssetConfirmResponse>(`/assets/${assetId}/confirm`, {
+): Promise<BaseResponse<{ assetId: string; status: string }>> {
+  return apiFetch<{ assetId: string; status: string }>(`/assets/${assetId}/confirm`, {
     method: "POST",
   });
 }

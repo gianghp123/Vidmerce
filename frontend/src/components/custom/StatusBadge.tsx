@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import type { VideoStatus } from "@/features/videos/models/video.model";
-import type { AssetStatus } from "@/features/assets/models/asset.model";
+import type { AssetStatus } from "@/lib/models/asset.model";
 
 export type EntityStatus = VideoStatus | AssetStatus;
 

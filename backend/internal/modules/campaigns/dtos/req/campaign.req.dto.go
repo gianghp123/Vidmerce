@@ -11,7 +11,7 @@ type UpdateCampaignReq struct {
 type UpdateStoryboard struct {
 	Headline string  `json:"headline,omitempty"`
 	BodyCopy string  `json:"bodyCopy,omitempty"`
-	CTA      string  `json:"cta,omitempty"`
+	Cta      string  `json:"cta,omitempty"`
 	Slides   []Slide `json:"slides,omitempty"`
 }
 

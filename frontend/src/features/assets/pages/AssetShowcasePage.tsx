@@ -9,12 +9,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { deleteAssetImage, fetchAsset } from "../api/asset.api";
 import { useAssetImages } from "../hooks/useAssetImages";
-import type { Asset } from "../models/asset.model";
+import type { IAsset } from "../../../lib/models/asset.model";
 
 export function AssetShowcasePage() {
   const navigator = useNavigate()
   const { id } = useParams<{ id: string }>();
-  const [asset, setAsset] = useState<Asset | null>(null);
+  const [asset, setAsset] = useState<IAsset | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -163,16 +163,16 @@ export function AssetShowcasePage() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {asset?.images?.map((image, _ ) => (
                 <div
-                  key={image.imageId}  
+                  key={image.id}  
                   className="relative aspect-square rounded-lg overflow-hidden bg-surface-container-high group"
                 >
                   <img
                     src={image.imageUrl}
-                    alt={`Asset image ${image.imageId}`}
+                    alt={`Asset image ${image.id}`}
                     className="w-full h-full object-cover"
                   />
                   <button
-                    onClick={() => handleDeleteImage(image.imageId)}
+                    onClick={() => handleDeleteImage(image.id)}
                     className="absolute top-2 right-2 p-2 rounded-full bg-error text-on-error opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/80"
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />

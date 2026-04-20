@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "enums.schema.json",
+  "title": "Enums",
+  "description": "Shared enums for all entities",
+  "definitions": {
+    "AssetStatus": {
+      "type": "string",
+      "enum": ["IMPORTING", "UPLOADING", "DRAFT", "COMPLETED", "PARTIAL", "FAILED"],
+      "description": "Asset processing status"
+    },
+    "ImageStatus": {
+      "type": "string",
+      "enum": ["UPLOADING", "COMPLETED", "FAILED"],
+      "description": "Image processing status"
+    },
+    "CampaignStatus": {
+      "type": "string",
+      "enum": ["DRAFT", "PUBLISHED"],
+      "description": "Campaign publication status"
+    },
+    "JobStatus": {
+      "type": "string",
+      "enum": ["PENDING", "PROCESSING", "COMPLETED", "FAILED"],
+      "description": "Job execution status"
+    },
+    "JobType": {
+      "type": "string",
+      "enum": ["SCRAPE_PRODUCT", "GENERATE_CAMPAIGN"],
+      "description": "Job type"
+    },
+    "ImageRole": {
+      "type": "string",
+      "enum": ["HERO", "DETAIL", "LIFESTYLE", "CTA_BACKDROP"],
+      "description": "Role of image in storyboard slide"
+    }
+  }
+}

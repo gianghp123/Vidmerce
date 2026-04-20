@@ -45,7 +45,7 @@ func (r *campaignRepository) FindAll(ctx context.Context, limit int, lastKey str
 		return nil, err
 	}
 
-	keyCond := expression.Key("GSI1PK").Equal(expression.Value(string(enums.GSI1PKEntityCampaign)))
+	keyCond := expression.Key("Gsi1Pk").Equal(expression.Value(string(core.Gsi1PkEntityCampaign)))
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func (r *campaignRepository) FindAll(ctx context.Context, limit int, lastKey str
 	}
 
 	for i := range items {
-		items[i].PK = strings.TrimPrefix(items[i].PK, string(enums.EntityTypeCampaign)+enums.KeySeparator)
+		items[i].Pk = strings.TrimPrefix(items[i].Pk, string(core.EntityTypeCampaign)+core.KeySeparator)
 	}
 
 	nextCursor, err := core.EncodeCursor(resp.LastEvaluatedKey)
@@ -92,8 +92,8 @@ func (r *campaignRepository) FindAll(ctx context.Context, limit int, lastKey str
 
 func (r *campaignRepository) FindByID(ctx context.Context, id string) (*models.CampaignEntity, error) {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": utils.BuildPK(enums.EntityTypeCampaign, id),
-		"SK": string(enums.SortKeyMetadata),
+		"Pk": utils.BuildPk(core.EntityTypeCampaign, id),
+		"Sk": string(core.SortKeyMetadata),
 	})
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (r *campaignRepository) FindByID(ctx context.Context, id string) (*models.C
 	if err := attributevalue.UnmarshalMap(resp.Item, &item); err != nil {
 		return nil, err
 	}
-	item.PK = strings.TrimPrefix(item.PK, string(enums.EntityTypeCampaign)+enums.KeySeparator)
+	item.Pk = strings.TrimPrefix(item.Pk, string(core.EntityTypeCampaign)+core.KeySeparator)
 	return &item, nil
 }
 
@@ -134,8 +134,8 @@ func (r *campaignRepository) Create(ctx context.Context, campaign models.Campaig
 
 func (r *campaignRepository) Update(ctx context.Context, campaign models.CampaignEntity) error {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": utils.BuildPK(enums.EntityTypeCampaign, campaign.PK),
-		"SK": string(enums.SortKeyMetadata),
+		"Pk": utils.BuildPk(core.EntityTypeCampaign, campaign.Pk),
+		"Sk": string(core.SortKeyMetadata),
 	})
 	if err != nil {
 		return err
@@ -145,26 +145,26 @@ func (r *campaignRepository) Update(ctx context.Context, campaign models.Campaig
 	exprNames := map[string]string{}
 	exprValues := map[string]types.AttributeValue{}
 
-	if campaign.Storyboard.Headline != "" {
-		updateExpr += "#storyboard.#headline = :headline, "
-		exprNames["#storyboard"] = "storyboard"
+	if campaign.StoryboardEntity.Headline != "" {
+		updateExpr += "#StoryboardEntity.#headline = :headline, "
+		exprNames["#StoryboardEntity"] = "StoryboardEntity"
 		exprNames["#headline"] = "headline"
-		exprValues[":headline"] = &types.AttributeValueMemberS{Value: campaign.Storyboard.Headline}
+		exprValues[":headline"] = &types.AttributeValueMemberS{Value: campaign.StoryboardEntity.Headline}
 	}
-	if campaign.Storyboard.BodyCopy != "" {
-		updateExpr += "#storyboard.#body = :body, "
+	if campaign.StoryboardEntity.BodyCopy != "" {
+		updateExpr += "#StoryboardEntity.#body = :body, "
 		exprNames["#body"] = "bodyCopy"
-		exprValues[":body"] = &types.AttributeValueMemberS{Value: campaign.Storyboard.BodyCopy}
+		exprValues[":body"] = &types.AttributeValueMemberS{Value: campaign.StoryboardEntity.BodyCopy}
 	}
-	if campaign.Storyboard.CTA != "" {
-		updateExpr += "#storyboard.#cta = :cta, "
+	if campaign.StoryboardEntity.Cta != "" {
+		updateExpr += "#StoryboardEntity.#cta = :cta, "
 		exprNames["#cta"] = "cta"
-		exprValues[":cta"] = &types.AttributeValueMemberS{Value: campaign.Storyboard.CTA}
+		exprValues[":cta"] = &types.AttributeValueMemberS{Value: campaign.StoryboardEntity.Cta}
 	}
-	if campaign.Storyboard.Slides != nil {
-		updateExpr += "#storyboard.#slides = :slides, "
+	if campaign.StoryboardEntity.Slides != nil {
+		updateExpr += "#StoryboardEntity.#slides = :slides, "
 		exprNames["#slides"] = "slides"
-		slides, _ := attributevalue.MarshalList(campaign.Storyboard.Slides)
+		slides, _ := attributevalue.MarshalList(campaign.StoryboardEntity.Slides)
 		exprValues[":slides"] = &types.AttributeValueMemberL{Value: slides}
 	}
 
@@ -184,8 +184,8 @@ func (r *campaignRepository) Update(ctx context.Context, campaign models.Campaig
 
 func (r *campaignRepository) Delete(ctx context.Context, id string) error {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": utils.BuildPK(enums.EntityTypeCampaign, id),
-		"SK": string(enums.SortKeyMetadata),
+		"Pk": utils.BuildPk(core.EntityTypeCampaign, id),
+		"Sk": string(core.SortKeyMetadata),
 	})
 	if err != nil {
 		return err
@@ -200,8 +200,8 @@ func (r *campaignRepository) Delete(ctx context.Context, id string) error {
 
 func (r *campaignRepository) FindActiveJobsByTargetID(ctx context.Context, targetID string) ([]models.JobEntity, error) {
 	keyCond := expression.Key("TargetID").Equal(expression.Value(targetID))
-	filterCond := expression.Name("Status").Equal(expression.Value(string(enums.StatusJobPending))).
-		Or(expression.Name("Status").Equal(expression.Value(string(enums.StatusJobProcessing))))
+	filterCond := expression.Name("Status").Equal(expression.Value(string(enums.JobStatusPending))).
+		Or(expression.Name("Status").Equal(expression.Value(string(enums.JobStatusProcessing))))
 	expr, err := expression.NewBuilder().
 		WithKeyCondition(keyCond).
 		WithFilter(filterCond).

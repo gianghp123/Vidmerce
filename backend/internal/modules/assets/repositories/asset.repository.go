@@ -49,7 +49,7 @@ func (r *assetRepository) FindAll(ctx context.Context, limit int, lastKey string
 		return nil, err
 	}
 
-	keyCond := expression.Key("GSI1PK").Equal(expression.Value("ENTITY#ASSET"))
+	keyCond := expression.Key("Gsi1Pk").Equal(expression.Value("ENTITY#ASSET"))
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
 		return nil, err
@@ -78,9 +78,9 @@ func (r *assetRepository) FindAll(ctx context.Context, limit int, lastKey string
 		return nil, err
 	}
 
-	// Strip "ASSET#" prefix from PK for each item
+	// Strip "ASSET#" prefix from Pk for each item
 	for i := range items {
-		items[i].PK = strings.TrimPrefix(items[i].PK, "ASSET#")
+		items[i].Pk = strings.TrimPrefix(items[i].Pk, "ASSET#")
 	}
 
 	nextCursor, err := core.EncodeCursor(resp.LastEvaluatedKey)
@@ -97,8 +97,8 @@ func (r *assetRepository) FindAll(ctx context.Context, limit int, lastKey string
 
 func (r *assetRepository) FindByID(ctx context.Context, id string) (*models.AssetEntity, error) {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": "ASSET#" + id,
-		"SK": "METADATA",
+		"Pk": "ASSET#" + id,
+		"Sk": "METADATA",
 	})
 	if err != nil {
 		return nil, err
@@ -120,8 +120,8 @@ func (r *assetRepository) FindByID(ctx context.Context, id string) (*models.Asse
 	if err := attributevalue.UnmarshalMap(resp.Item, &item); err != nil {
 		return nil, err
 	}
-	// Strip "ASSET#" prefix from PK to return raw asset ID
-	item.PK = strings.TrimPrefix(item.PK, "ASSET#")
+	// Strip "ASSET#" prefix from Pk to return raw asset ID
+	item.Pk = strings.TrimPrefix(item.Pk, "ASSET#")
 	return &item, nil
 }
 
@@ -150,8 +150,8 @@ func (r *assetRepository) Create(ctx context.Context, asset models.AssetEntity) 
 
 func (r *assetRepository) UpdateAssetStatus(ctx context.Context, id string, status string) error {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": "ASSET#" + id,
-		"SK": "METADATA",
+		"Pk": "ASSET#" + id,
+		"Sk": "METADATA",
 	})
 	if err != nil {
 		return err
@@ -173,8 +173,8 @@ func (r *assetRepository) UpdateAssetStatus(ctx context.Context, id string, stat
 
 func (r *assetRepository) IncrementImageCount(ctx context.Context, id string) (int, error) {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": "ASSET#" + id,
-		"SK": "METADATA",
+		"Pk": "ASSET#" + id,
+		"Sk": "METADATA",
 	})
 	if err != nil {
 		return 0, err

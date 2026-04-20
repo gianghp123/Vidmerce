@@ -63,10 +63,10 @@ All entities embed `BaseItem` which provides:
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
-| `PK` | String | Partition key (format: `ENTITY_TYPE#ID`) |
-| `SK` | String | Sort key (format: `METADATA` or sub-type) |
-| `GSI1PK` | String | GSI1 partition key for secondary queries |
-| `GSI1SK` | String | GSI1 sort key for secondary queries |
+| `Pk` | String | Partition key (format: `ENTITY_TYPE#ID`) |
+| `Sk` | String | Sort key (format: `METADATA` or sub-type) |
+| `Gsi1Pk` | String | GSI1 partition key for secondary queries |
+| `Gsi1Sk` | String | GSI1 sort key for secondary queries |
 
 ---
 
@@ -78,10 +78,10 @@ Represents a product/asset with images.
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
-| `PK` | String | `ASSET#{id}` |
-| `SK` | String | `METADATA` |
-| `GSI1PK` | String | `ENTITY#ASSET` |
-| `GSI1SK` | String | `id` |
+| `Pk` | String | `ASSET#{id}` |
+| `Sk` | String | `METADATA` |
+| `Gsi1Pk` | String | `ENTITY#ASSET` |
+| `Gsi1Sk` | String | `id` |
 | `name` | String | Product name |
 | `price` | float64 | Product price |
 | `productUrl` | String | URL to product page |
@@ -95,8 +95,8 @@ Represents an image uploaded for an asset.
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
-| `PK` | String | `ASSET#{assetId}` |
-| `SK` | String | `IMAGE#{imageId}` |
+| `Pk` | String | `ASSET#{assetId}` |
+| `Sk` | String | `IMAGE#{imageId}` |
 | `fileKey` | String | S3 object key |
 | `status` | ImageStatus | Upload status |
 | `order` | int | Display order |
@@ -107,10 +107,10 @@ Represents a marketing campaign linked to an asset.
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
-| `PK` | String | `CAMPAIGN#{id}` |
-| `SK` | String | `METADATA` |
-| `GSI1PK` | String | `ENTITY#CAMPAIGN` |
-| `GSI1SK` | String | `id` |
+| `Pk` | String | `CAMPAIGN#{id}` |
+| `Sk` | String | `METADATA` |
+| `Gsi1Pk` | String | `ENTITY#CAMPAIGN` |
+| `Gsi1Sk` | String | `id` |
 | `assetId` | String | Linked asset ID |
 | `status` | CampaignStatus | Campaign status |
 | `storyboard` | Storyboard | Campaign storyboard |
@@ -145,10 +145,10 @@ Represents a background job for processing.
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
-| `PK` | String | `JOB#{id}` |
-| `SK` | String | `METADATA` |
-| `GSI1PK` | String | `ENTITY#JOB` |
-| `GSI1SK` | String | `id` |
+| `Pk` | String | `JOB#{id}` |
+| `Sk` | String | `METADATA` |
+| `Gsi1Pk` | String | `ENTITY#JOB` |
+| `Gsi1Sk` | String | `id` |
 | `targetId` | String | ID of entity being processed |
 | `type` | JobType | Job type |
 | `status` | JobStatus | Job status |
@@ -418,7 +418,7 @@ func RegisterRoutes(r *gin.RouterGroup, dbClient *dynamodb.Client, store storage
 
 ### Utils
 
-- `utils.BuildPK(entityType, id)` - Build composite primary key
+- `utils.BuildPk(entityType, id)` - Build composite primary key
 - `utils.BuildAssetBaseItem(id)` - Build BaseItem for Asset
 - `utils.BuildJobBaseItem(id)` - Build BaseItem for Job
 - `utils.BuildCampaignBaseItem(id)` - Build BaseItem for Campaign

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "image.schema.json",
+  "title": "Image",
+  "description": "Image entity for product images",
+  "allOf": [
+    { "$ref": "base-item.schema.json" },
+    {
+      "type": "object",
+      "properties": {
+        "fileKey": {
+          "type": "string",
+          "description": "S3 file key"
+        },
+        "status": {
+          "$ref": "enums.schema.json#/definitions/ImageStatus"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Image order"
+        }
+      },
+      "required": ["fileKey", "status", "order"]
+    }
+  ]
+}

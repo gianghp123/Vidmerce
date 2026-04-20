@@ -37,15 +37,15 @@ func (s *campaignService) CreateCampaign(ctx context.Context, req req.CreateCamp
 	campaign := models.CampaignEntity{
 		BaseItem:  utils.BuildCampaignBaseItem(campaignID),
 		AssetID:   req.AssetID,
-		Status:    enums.StatusCampaignDraft,
+		Status:    enums.CampaignStatusDraft,
 		CreatedAt: utils.Now(),
 	}
 
 	job := models.JobEntity{
 		BaseItem:  utils.BuildJobBaseItem(jobID),
-		TargetID:  campaignID,
-		Type:      enums.TypeJobGenerateCampaign,
-		Status:    enums.StatusJobPending,
+		TargetID:  &campaignID,
+		Type:      enums.JobTypeGenerateCampaign,
+		Status:    enums.JobStatusPending,
 		CreatedAt: utils.Now(),
 	}
 
@@ -100,20 +100,20 @@ func (s *campaignService) UpdateCampaign(ctx context.Context, id string, req req
 	}
 
 	if req.Storyboard != nil {
-		if campaign.Storyboard.Headline == "" {
-			campaign.Storyboard.Headline = req.Storyboard.Headline
+		if campaign.StoryboardEntity.Headline == "" {
+			campaign.StoryboardEntity.Headline = req.Storyboard.Headline
 		}
 		if req.Storyboard.Headline != "" {
-			campaign.Storyboard.Headline = req.Storyboard.Headline
+			campaign.StoryboardEntity.Headline = req.Storyboard.Headline
 		}
 		if req.Storyboard.BodyCopy != "" {
-			campaign.Storyboard.BodyCopy = req.Storyboard.BodyCopy
+			campaign.StoryboardEntity.BodyCopy = req.Storyboard.BodyCopy
 		}
-		if req.Storyboard.CTA != "" {
-			campaign.Storyboard.CTA = req.Storyboard.CTA
+		if req.Storyboard.Cta != "" {
+			campaign.StoryboardEntity.Cta = req.Storyboard.Cta
 		}
 		if req.Storyboard.Slides != nil {
-			campaign.Storyboard.Slides = toModelSlides(req.Storyboard.Slides)
+			campaign.StoryboardEntity.Slides = toModelSlides(req.Storyboard.Slides)
 		}
 	}
 
@@ -144,11 +144,11 @@ func toCampaignRes(campaign *models.CampaignEntity) *res.CampaignRes {
 	var result res.CampaignRes
 	_ = utils.MapToDTO(campaign, &result)
 	result.Status = string(campaign.Status)
-	result.Storyboard = toResStoryboard(campaign.Storyboard)
+	result.Storyboard = toResStoryboard(*campaign.StoryboardEntity)
 	return &result
 }
 
-func toResStoryboard(sb models.Storyboard) res.Storyboard {
+func toResStoryboard(sb models.StoryboardEntity) res.Storyboard {
 	var result res.Storyboard
 	_ = utils.MapToDTO(sb, &result)
 	if len(sb.Slides) > 0 {
@@ -157,7 +157,7 @@ func toResStoryboard(sb models.Storyboard) res.Storyboard {
 	return result
 }
 
-func toResSlides(slides []models.Slide) []res.Slide {
+func toResSlides(slides []models.SlideEntity) []res.Slide {
 	var result []res.Slide
 	_ = utils.MapToDTOs(slides, &result)
 	for i := range result {
@@ -166,8 +166,8 @@ func toResSlides(slides []models.Slide) []res.Slide {
 	return result
 }
 
-func toModelSlides(slides []req.Slide) []models.Slide {
-	var result []models.Slide
+func toModelSlides(slides []req.Slide) []models.SlideEntity {
+	var result []models.SlideEntity
 	_ = utils.MapToDTOs(slides, &result)
 	return result
 }

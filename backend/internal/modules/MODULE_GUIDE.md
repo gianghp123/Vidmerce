@@ -222,7 +222,7 @@ func (s *<module-name>Service) List<ModuleName>s(ctx context.Context, limit int,
 	items := make([]res.<ModuleName>Response, 0, len(result.Data))
 	for _, item := range result.Data {
 		items = append(items, res.<ModuleName>Response{
-			ID:        item.PK,
+			ID:        item.Pk,
 			Title:     item.Title,
 			Status:    item.Status,
 			CreatedAt: item.CreatedAt,
@@ -247,7 +247,7 @@ func (s *<module-name>Service) Get<ModuleName>(ctx context.Context, id string) (
 
 	return &res.<ModuleName>DetailResponse{
 		<ModuleName>Response: res.<ModuleName>Response{
-			ID:        item.PK,
+			ID:        item.Pk,
 			Title:     item.Title,
 			Status:    item.Status,
 			CreatedAt: item.CreatedAt,
@@ -294,7 +294,7 @@ func (r *<module-name>Repository) FindAll(ctx context.Context, limit int, lastKe
 		return nil, err
 	}
 
-	keyCond := expression.Key("GSI1PK").Equal(expression.Value("ENTITY#<MODULE_NAME>"))
+	keyCond := expression.Key("Gsi1Pk").Equal(expression.Value("ENTITY#<MODULE_NAME>"))
 	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
 		return nil, err
@@ -324,7 +324,7 @@ func (r *<module-name>Repository) FindAll(ctx context.Context, limit int, lastKe
 	}
 
 	for i := range items {
-		items[i].PK = strings.TrimPrefix(items[i].PK, "<MODULE_NAME>#")
+		items[i].Pk = strings.TrimPrefix(items[i].Pk, "<MODULE_NAME>#")
 	}
 
 	nextCursor, err := core.EncodeCursor(resp.LastEvaluatedKey)
@@ -341,8 +341,8 @@ func (r *<module-name>Repository) FindAll(ctx context.Context, limit int, lastKe
 
 func (r *<module-name>Repository) FindByID(ctx context.Context, id string) (*models.<ModuleName>Entity, error) {
 	key, err := attributevalue.MarshalMap(map[string]string{
-		"PK": "<MODULE_NAME>#" + id,
-		"SK": "METADATA",
+		"Pk": "<MODULE_NAME>#" + id,
+		"Sk": "METADATA",
 	})
 	if err != nil {
 		return nil, err
@@ -364,7 +364,7 @@ func (r *<module-name>Repository) FindByID(ctx context.Context, id string) (*mod
 	if err := attributevalue.UnmarshalMap(resp.Item, &item); err != nil {
 		return nil, err
 	}
-	item.PK = strings.TrimPrefix(item.PK, "<MODULE_NAME>#")
+	item.Pk = strings.TrimPrefix(item.Pk, "<MODULE_NAME>#")
 	return &item, nil
 }
 ```
