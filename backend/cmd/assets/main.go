@@ -23,6 +23,7 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/internal/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 var ginLambda *ginadapter.GinLambdaV2
@@ -32,6 +33,9 @@ func setup() (*gin.Engine, *configs.AWSConfig) {
 		log.Println("Found .env file, loading local configurations...")
 		_ = godotenv.Load()
 	}
+
+	logger := configs.InitLogger()
+	logger.Info("Initializing application", zap.String("mode", "startup"))
 
 	awsCfg := configs.LoadAWSConfig()
 	s3Cfg := configs.LoadS3Config()

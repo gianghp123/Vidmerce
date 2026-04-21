@@ -40,10 +40,10 @@ export TF_LOG      = DEBUG
 export TF_LOG_PATH = terraform.log
 endif
 
-.PHONY: build deploy plan destroy setup-local setup-cloud test-lambda-local generate
+.PHONY: build deploy plan destroy setup-local setup-cloud test-lambda-local generate-types
 
 # --- Type Generation ---
-generate:
+generate-types:
 	@echo "--- [GENERATE] Generating Go Models & Enums ---"
 	@python3 $(SCRIPTS_DIR)/generate_go_types.py \
 		--schema-dir $(SCHEMAS_DIR) \

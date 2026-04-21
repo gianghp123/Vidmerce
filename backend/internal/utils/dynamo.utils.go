@@ -37,3 +37,7 @@ func BuildJobBaseItem(id string) models.BaseItem {
 func BuildCampaignBaseItem(id string) models.BaseItem {
 	return BuildBaseItem(core.EntityTypeCampaign, id, core.Gsi1PkEntityCampaign)
 }
+
+func BuildUserBaseItem(id string) models.BaseItem {
+	return BuildBaseItem(core.EntityTypeUser, id, core.Gsi1PkEntityUser)
+}

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gianghp123/Vidmerce/backend/internal/configs"
 	"github.com/gianghp123/Vidmerce/backend/internal/core"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
@@ -18,13 +19,14 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/internal/storage"
 	"github.com/gianghp123/Vidmerce/backend/internal/utils"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type AssetService interface {
 	CreateAsset(ctx context.Context, req req.CreateAssetReq) (*res.CreateAssetRes, *response.AppError)
 	ConfirmUpload(ctx context.Context, assetID string) (*res.ConfirmAssetRes, *response.AppError)
 	GetAsset(ctx context.Context, assetID string) (*res.AssetRes, *response.AppError)
-	ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetPreviewRes], *response.AppError)
+	ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetRes], *response.AppError)
 	GetImageUploadUrl(ctx context.Context, assetID string, fileName string) (*res.UploadInfo, *response.AppError)
 	DeleteAssetImage(ctx context.Context, assetID string, imageID string) *response.AppError
 	ImportAsset(ctx context.Context, req req.ImportAssetReq) (*res.ImportAssetRes, *response.AppError)
@@ -41,6 +43,8 @@ func NewAssetService(assetRepo imageRepo.AssetRepository, imageRepo imageRepo.Im
 }
 
 func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) (*res.CreateAssetRes, *response.AppError) {
+	log := configs.GetLogger()
+
 	imageCount := req.ImageCount
 	if imageCount <= 0 {
 		imageCount = 1
@@ -69,6 +73,7 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 
 		uploadURL, err := s.storage.GeneratePresignedUploadURL(ctx, fileKey, "image/jpeg", 5*time.Minute)
 		if err != nil {
+			log.Error("Failed to generate upload URL", zap.String("assetId", assetID), zap.Error(err))
 			return nil, response.Internal("failed to generate upload URL")
 		}
 
@@ -99,9 +104,11 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 	}
 
 	if err := baseRepo.TransactWriteItems(ctx, items...); err != nil {
+		log.Error("Failed to create asset", zap.String("assetId", assetID), zap.Error(err))
 		return nil, response.Internal("failed to create asset and images: " + err.Error())
 	}
 
+	log.Debug("Asset created", zap.String("assetId", assetID), zap.Int("imageCount", imageCount))
 	return &res.CreateAssetRes{
 		AssetID: assetID,
 		Status:  string(enums.AssetStatusUploading),
@@ -110,17 +117,20 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 }
 
 func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.ConfirmAssetRes, *response.AppError) {
+	log := configs.GetLogger()
+
 	asset, err := s.assetRepo.FindByID(ctx, assetID)
 	if err != nil {
+		log.Error("Failed to find asset for confirmation", zap.String("assetId", assetID), zap.Error(err))
 		return nil, response.Internal("failed to find asset")
 	}
 	if asset == nil {
 		return nil, response.NotFound("asset not found")
 	}
 
-	// ✅ get images from DB (source of truth)
 	dbImages, err := s.imageRepo.FindByAssetID(ctx, assetID)
 	if err != nil {
+		log.Error("Failed to get images", zap.String("assetId", assetID), zap.Error(err))
 		return nil, response.Internal("failed to get images")
 	}
 
@@ -132,6 +142,7 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.
 
 		exists, err := s.storage.ObjectExists(ctx, fileKey)
 		if err != nil {
+			log.Error("Failed to verify upload", zap.String("assetId", assetID), zap.String("fileKey", fileKey), zap.Error(err))
 			return nil, response.Internal("failed to verify upload")
 		}
 
@@ -146,8 +157,8 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.
 			status = string(enums.ImageStatusFailed)
 		}
 
-		// ✅ update per image
 		if err := s.imageRepo.UpdateStatus(ctx, assetID, img.Order, status); err != nil {
+			log.Error("Failed to update image status", zap.String("assetId", assetID), zap.Int("order", img.Order), zap.Error(err))
 			return nil, response.Internal("failed to update image status")
 		}
 
@@ -158,7 +169,6 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.
 		})
 	}
 
-	// ✅ determine asset status dynamically
 	total := len(dbImages)
 
 	var finalStatus string
@@ -175,9 +185,11 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.
 	}
 
 	if err := s.assetRepo.UpdateAssetStatus(ctx, assetID, finalStatus); err != nil {
+		log.Error("Failed to update asset status", zap.String("assetId", assetID), zap.String("status", finalStatus), zap.Error(err))
 		return nil, response.Internal("failed to update asset status")
 	}
 
+	log.Debug("Asset upload confirmed", zap.String("assetId", assetID), zap.String("status", finalStatus), zap.Int("uploadedCount", uploadedCount), zap.Int("total", total))
 	return &res.ConfirmAssetRes{
 		AssetID: assetID,
 		Status:  finalStatus,
@@ -186,8 +198,11 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string) (*res.
 }
 
 func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.AssetRes, *response.AppError) {
+	log := configs.GetLogger()
+
 	asset, err := s.assetRepo.FindByID(ctx, assetID)
 	if err != nil {
+		log.Error("Failed to find asset", zap.String("assetId", assetID), zap.Error(err))
 		return nil, response.Internal("failed to find asset")
 	}
 	if asset == nil {
@@ -196,6 +211,7 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 
 	images, err := s.imageRepo.FindByAssetID(ctx, assetID)
 	if err != nil {
+		log.Error("Failed to find images", zap.String("assetId", assetID), zap.Error(err))
 		return nil, response.Internal("failed to find images")
 	}
 
@@ -223,22 +239,26 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 	}, nil
 }
 
-func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetPreviewRes], *response.AppError) {
+func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetRes], *response.AppError) {
+	log := configs.GetLogger()
+
 	if limit <= 0 {
 		limit = 20
 	}
 
 	result, err := s.assetRepo.FindAll(ctx, limit, cursor)
 	if err != nil {
+		log.Error("Failed to fetch assets", zap.Error(err))
 		return nil, response.Internal("failed to fetch assets: " + err.Error())
 	}
 
-	assets := make([]res.AssetPreviewRes, 0, len(result.Data))
+	assets := make([]res.AssetRes, 0, len(result.Data))
 	for _, item := range result.Data {
 		assetID := item.Pk
 
 		img, err := s.imageRepo.FindOneCompletedImageByAssetId(ctx, assetID)
 		if err != nil {
+			log.Warn("Failed to fetch thumbnail", zap.String("assetId", assetID), zap.Error(err))
 			continue
 		}
 
@@ -250,66 +270,63 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 			}
 		}
 
-		assets = append(assets, res.AssetPreviewRes{
+		assets = append(assets, res.AssetRes{
 			AssetID:    assetID,
 			Name:       item.Name,
 			Price:      item.Price,
-			Image:      image,
+			Images:     []res.ImageInfo{image},
 			ProductURL: item.ProductURL,
 			Status:     string(item.Status),
 			CreatedAt:  item.CreatedAt,
 		})
 	}
 
-	return &response.PaginatedResult[res.AssetPreviewRes]{
+	log.Debug("Assets listed", zap.Int("count", len(assets)), zap.Bool("hasMore", result.Meta.HasMore))
+	return &response.PaginatedResult[res.AssetRes]{
 		Data: assets,
 		Meta: result.Meta,
 	}, nil
 }
 
 func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fileName string) (*res.UploadInfo, *response.AppError) {
+	log := configs.GetLogger()
+
 	asset, err := s.assetRepo.FindByID(ctx, assetID)
 	if err != nil {
+		log.Error("Failed to find asset", zap.String("assetId", assetID), zap.Error(err))
 		return nil, response.Internal("failed to find asset")
 	}
 	if asset == nil {
 		return nil, response.NotFound("asset not found")
 	}
 
-	// 1. Fetch ALL existing images for this asset
 	images, err := s.imageRepo.FindByAssetID(ctx, assetID)
 	if err != nil {
+		log.Error("Failed to fetch images", zap.String("assetId", assetID), zap.Error(err))
 		return nil, response.Internal("failed to fetch images")
 	}
 
 	activeCount := 0
 	newOrder := 1
 
-	// 2. Calculate Count and Order simultaneously
 	for _, img := range images {
-		// Prevent DynamoDB Sk collisions by always finding the absolute highest order
 		if img.Order >= newOrder {
 			newOrder = img.Order + 1
 		}
 
-		// Only count images that are successful or currently in progress
 		if img.Status == enums.ImageStatusCompleted || img.Status == enums.ImageStatusUploading {
 			activeCount++
 		}
 	}
 
-	// 3. Enforce the limit based ONLY on active images
 	if activeCount >= core.MaxImagesPerAsset {
 		return nil, response.BadRequest(fmt.Sprintf("maximum %d images per asset reached", core.MaxImagesPerAsset))
 	}
-
-	// 4. Extract extension safely
 	ext := filepath.Ext(fileName)
 	if ext == "" {
 		ext = ".jpg"
 	}
 
-	// fileKey will now safely be assets/123/6.jpg if images 1-5 exist but 1 failed
 	fileKey := fmt.Sprintf("assets/%s/%d%s", assetID, newOrder, ext)
 	contentType := "image/jpeg"
 	switch strings.ToLower(ext) {
@@ -321,6 +338,7 @@ func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fi
 
 	uploadURL, err := s.storage.GeneratePresignedUploadURL(ctx, fileKey, contentType, 5*time.Minute)
 	if err != nil {
+		log.Error("Failed to generate upload URL", zap.String("assetId", assetID), zap.Error(err))
 		return nil, response.Internal("failed to generate upload URL")
 	}
 
@@ -335,12 +353,13 @@ func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fi
 	}
 
 	if err := s.imageRepo.Create(ctx, []models.ImageEntity{imageEntity}); err != nil {
+		log.Error("Failed to create image record", zap.String("assetId", assetID), zap.Error(err))
 		return nil, response.Internal("failed to create image record")
 	}
 
-	// IMPORTANT: update asset status back to UPLOADING
 	_ = s.assetRepo.UpdateAssetStatus(ctx, assetID, string(enums.AssetStatusUploading))
 
+	log.Debug("Generated upload URL", zap.String("assetId", assetID), zap.Int("order", newOrder))
 	return &res.UploadInfo{
 		UploadURL: uploadURL,
 		FileKey:   fileKey,
@@ -350,8 +369,11 @@ func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fi
 }
 
 func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, imageID string) *response.AppError {
+	log := configs.GetLogger()
+
 	asset, err := s.assetRepo.FindByID(ctx, assetID)
 	if err != nil {
+		log.Error("Failed to find asset", zap.String("assetId", assetID), zap.Error(err))
 		return response.Internal("failed to find asset")
 	}
 	if asset == nil {
@@ -360,10 +382,11 @@ func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, ima
 
 	images, err := s.imageRepo.FindByAssetID(ctx, assetID)
 	if err != nil {
+		log.Error("Failed to find images", zap.String("assetId", assetID), zap.Error(err))
 		return response.Internal("failed to find images")
 	}
 
-	var targetImg *models.ImageEntity // adjust type if needed
+	var targetImg *models.ImageEntity
 	for _, img := range images {
 		if img.Sk == imageID {
 			targetImg = &img
@@ -375,22 +398,27 @@ func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, ima
 		return response.NotFound("image not found")
 	}
 
-	// delete file from storage
 	if err := s.storage.DeleteObject(ctx, targetImg.FileKey); err != nil {
+		log.Error("Failed to delete file from storage", zap.String("assetId", assetID), zap.String("imageId", imageID), zap.Error(err))
 		return response.Internal("failed to delete file from storage")
 	}
 
-	// delete DB record
 	if err := s.imageRepo.Delete(ctx, assetID, targetImg.Sk); err != nil {
+		log.Error("Failed to delete image record", zap.String("assetId", assetID), zap.String("imageId", imageID), zap.Error(err))
 		return response.Internal("failed to delete image record")
 	}
 
+	log.Debug("Image deleted", zap.String("assetId", assetID), zap.String("imageId", imageID))
 	return nil
 }
 
 func (s *assetService) ImportAsset(ctx context.Context, req req.ImportAssetReq) (*res.ImportAssetRes, *response.AppError) {
+	log := configs.GetLogger()
+
 	assetID := uuid.New().String()
 	jobID := uuid.New().String()
+
+	log.Debug("Importing asset", zap.String("assetId", assetID), zap.String("jobId", jobID), zap.String("productUrl", req.ProductURL))
 
 	asset := models.AssetEntity{
 		BaseItem:   utils.BuildAssetBaseItem(assetID),
@@ -410,9 +438,11 @@ func (s *assetService) ImportAsset(ctx context.Context, req req.ImportAssetReq) 
 
 	baseRepo := repositories.NewBaseRepository(s.assetRepo.DBClient())
 	if err := baseRepo.TransactWriteItems(ctx, asset, job); err != nil {
+		log.Error("Failed to create import job", zap.String("assetId", assetID), zap.String("jobId", jobID), zap.Error(err))
 		return nil, response.Internal("failed to create import job: " + err.Error())
 	}
 
+	log.Info("Asset import started", zap.String("assetId", assetID), zap.String("jobId", jobID))
 	return &res.ImportAssetRes{
 		AssetID: assetID,
 		JobID:   jobID,

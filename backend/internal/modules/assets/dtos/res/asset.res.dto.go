@@ -35,13 +35,3 @@ type AssetRes struct {
 	Status     string      `json:"status"`
 	CreatedAt  string      `json:"createdAt"`
 }
-
-type AssetPreviewRes struct {
-	AssetID    string    `json:"assetId"`
-	Name       string    `json:"name"`
-	Price      float64   `json:"price"`
-	Image      ImageInfo `json:"image,omitempty"`
-	ProductURL string    `json:"productUrl"`
-	Status     string    `json:"status"`
-	CreatedAt  string    `json:"createdAt"`
-}

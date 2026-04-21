@@ -33,6 +33,11 @@
       "type": "string",
       "enum": ["HERO", "DETAIL", "LIFESTYLE", "CTA_BACKDROP"],
       "description": "Role of image in storyboard slide"
+    },
+    "UserRole": {
+      "type": "string",
+      "enum": ["ADMIN", "USER"],
+      "description": "User role"
     }
   }
 }

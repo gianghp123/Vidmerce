@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: "Noto Serif", serif;
+    --font-sans: "Inter", sans-serif;
+    --font-serif: "Noto Serif", serif;
+
+    --color-background: #fff8f1;
+    --color-foreground: #1e1b17;
+    
+    --color-card: #ffffff;
+    --color-card-foreground: #1e1b17;
+    
+    --color-popover: #ffffff;
+    --color-popover-foreground: #1e1b17;
+    
+    --color-primary: #855324;
+    --color-primary-foreground: #ffffff;
+    
+    --color-secondary: #835335;
+    --color-secondary-foreground: #ffffff;
+    
+    --color-muted: #f4ede5;
+    --color-muted-foreground: #51443a;
+    
+    --color-accent: #c08552;
+    --color-accent-foreground: #ffffff;
+    
+    --color-destructive: #ba1a1a;
+    --color-destructive-foreground: #ffffff;
+    
+    --color-border: #d6c3b6;
+    --color-input: #d6c3b6;
+    --color-ring: #855324;
+
+    --radius: 0.25rem;
+
+    --color-sidebar: #f4ede5;
+    --color-sidebar-foreground: #1e1b17;
+    --color-sidebar-primary: #855324;
+    --color-sidebar-primary-foreground: #ffffff;
+    --color-sidebar-accent: #eee7df;
+    --color-sidebar-accent-foreground: #855324;
+    --color-sidebar-border: #d6c3b6;
+    --color-sidebar-ring: #855324;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+@layer utilities {
+  .linen-texture {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuC1vI81EmVQTbaARvElAUH5j7tkbkLUaF1WUelNYZmKJQmkmNCqm8EZ9FK5F11HBEGZJHjQnwlpiPtMCy36XzyMdzjw9YYhxlUZX9CC0BmxIKUdE_UewaxTddRF38PFYllKZ4d7dzWc9p3FJ3dZCABQiqAh2zxaz4J_Da1Huj800L8qDcSazmoBjJSGViazlfTlCsJJL-q6jE2ZZw2jEybhQVSRJycLRNLJ3wcezs-jJxrqIxu7h9NDCO9R73RkemauaOuHmxshaV9E);
+    background-color: #f9f3eb;
+  }
+  
+  .bg-atelier-shadow {
+    background: linear-gradient(135deg, #f4ede5 0%, #e8e1da 100%);
+    position: relative;
+  }
+  
+  .bg-atelier-shadow::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(45deg, rgba(0, 0, 0, 0.02) 0%, transparent 40%, rgba(0, 0, 0, 0.05) 100%);
+    pointer-events: none;
+  }
+
+  .technical-label {
+    @apply font-sans text-[0.6875rem] tracking-[0.05em] uppercase;
+  }
+
+  .bronze-gradient {
+    @apply bg-linear-to-br from-[#855324] to-[#c08552];
+  }
+
+  .custom-shadow {
+    box-shadow: 0 12px 32px -4px rgba(30, 27, 23, 0.06);
+  }
+}

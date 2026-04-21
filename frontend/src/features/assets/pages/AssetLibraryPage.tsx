@@ -1,20 +1,22 @@
-import { ContentLayout } from "@/components/custom/ContentLayout";
-import { CursorPagination } from "@/components/custom/Pagination";
-import { Button } from "@/components/ui/button";
-import { Filter, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { AssetGrid } from "../components/AssetGrid";
-import { CreateAssetModal } from "../components/CreateAssetModal";
+import { AssetPageHeader } from "../components/AssetPageHeader";
+import { AssetStats } from "../components/AssetStats";
+import { AssetTable } from "../components/AssetTable";
+import { AssetInfoCards } from "../components/AssetInfoCards";
 import { useAssets } from "../hooks/useAssets";
-import { EmptyState } from "@/components/custom/EmptyState";
+import type { AssetTableRowData } from "../components/AssetTableRow";
+
+const MOCK_TABLE_DATA: AssetTableRowData[] = [
+  { id: "1", name: "Terra Chronograph v.2", sku: "TR-CH-2024", price: 420, stock: "IN STOCK", imageUrl: "https://picsum.photos/seed/watch1/200/200" },
+  { id: "2", name: "Crimson Kinetic Runner", sku: "CR-KR-101", price: 185, stock: "IN STOCK", imageUrl: "https://picsum.photos/seed/shoe/200/200" },
+  { id: "3", name: "Aura Soundscape Pro", sku: "AU-SP-90", price: 349.50, stock: "LOW STOCK", imageUrl: "https://picsum.photos/seed/headphone/200/200" },
+  { id: "4", name: "Nomad Satchel Limited", sku: "NM-SL-22", price: 890, stock: "IN STOCK", imageUrl: "https://picsum.photos/seed/bag/200/200" },
+];
 
 export function AssetLibraryPage() {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  const { assets, isLoading, hasMore, fetchNext, fetchInitial, error } = useAssets();
-  const isEmpty = !isLoading && assets.length === 0;
-
+  const { assets, isLoading, error } = useAssets();
+  
   useEffect(() => {
     if (error) {
       toast.error(error.message);
@@ -22,52 +24,20 @@ export function AssetLibraryPage() {
   }, [error]);
 
   return (
-    <>
-      <ContentLayout
-        title="Asset Library"
-        description="Manage your shoppable product catalog and creative assets."
-        actions={
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2 bg-linear-to-br from-secondary to-primary-container text-primary-foreground rounded-xl font-heading font-bold text-sm shadow-lg active:opacity-80 transition-opacity">
-              <Plus className="w-4 h-4 mr-2" />
-              New Asset
-            </Button>
-            <div className="bg-surface-container-low px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium text-on-surface-variant">
-              <Filter className="w-4 h-4" />
-              <span>Sort: Recently Added</span>
-            </div>
-          </div>
-        }
-      >
-        <div className="pt-6">
-          {isLoading && assets.length === 0 ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : isEmpty ? (
-            <EmptyState
-              title="No asset yet"
-              description="Start by creating your first asset."
-            />
-          ) : (
-            <>
-              <AssetGrid assets={assets} />
-
-              <CursorPagination
-                hasMore={hasMore}
-                onLoadMore={fetchNext}
-                isLoading={isLoading}
-                entityName="assets"
-              />
-            </>
-          )}
-        </div>
-      </ContentLayout>
-      <CreateAssetModal
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        onSuccess={fetchInitial}
+    <div className="py-12 px-12 max-w-[1720px] mx-auto space-y-12">
+      <AssetPageHeader />
+      
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <AssetStats />
+      </div>
+      
+      <AssetTable 
+        assets={MOCK_TABLE_DATA}
+        currentPage={1}
+        totalItems={1248}
       />
-    </>
+      
+      <AssetInfoCards />
+    </div>
   );
 }
