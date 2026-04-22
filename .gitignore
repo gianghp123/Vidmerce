@@ -1,7 +1,6 @@
 .terraform
 node_modules
 vendor
-.env.*
 .env
 
 *.lock.hcl
@@ -25,3 +24,4 @@ bootstrap
 tmp
 .vscode
 step-functions
+volume

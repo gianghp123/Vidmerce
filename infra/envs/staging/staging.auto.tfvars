@@ -14,7 +14,7 @@ api_routes = {
   }
 }
 
-dynamodb_tables = {
+dynamodb_table_configs = {
   MediaProjectTable = {
     hash_key = "Pk"
     range_key = "Sk"

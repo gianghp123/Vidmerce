@@ -9,7 +9,6 @@ SCHEMAS_DIR     = $(SHARED_DIR)/schemas
 SCRIPTS_DIR     = $(SHARED_DIR)/scripts
 
 TERRAFORM_PATH  = infra/envs/$(ENV)
-LOCAL_OVERRIDE  = $(TERRAFORM_PATH)/override.tf.json
 
 # --- Go Type Generation Config ---
 GO_ENUMS_OUT    = $(BACKEND_DIR)/internal/core/enums
@@ -31,7 +30,7 @@ export TF_LOG      = DEBUG
 export TF_LOG_PATH = terraform.log
 endif
 
-.PHONY: build deploy plan destroy setup-cloud test-lambda-local generate-types
+.PHONY: build deploy plan destroy generate-types
 
 # --- Type Generation ---
 generate-types:
@@ -49,10 +48,6 @@ generate-types:
 		--models-dir $(TS_MODELS_OUT)
 	@echo "--- [GENERATE] All types updated successfully ---"
 
-setup-cloud:
-	@rm -f $(LOCAL_OVERRIDE)
-	@echo "--- [CLOUD] Local override removed. Use real AWS credentials. ---"
-
 # --- Main Logic ---
 build:
 	@echo "--- Building Backend for $(ENV) ---"
@@ -64,18 +59,10 @@ build:
 plan:
 	@cd $(TERRAFORM_PATH) && $(TF_CMD) plan -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
-deploy: setup-cloud build
+deploy:
 	@echo "--- Deploying to AWS [$(ENV)] ---"
 	@cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
-deploy-local:
-	@echo "--- Deploying to AWS [$(ENV)] with local config (is_local=true) ---"
-	@cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
-
-destroy: setup-cloud
+destroy:
 	@echo "--- Destroying AWS [$(ENV)] ---"
-	@cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) destroy -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
-
-destroy-local:
-	@echo "--- Destroying AWS [$(ENV)] with local config ---"
 	@cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) destroy -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
