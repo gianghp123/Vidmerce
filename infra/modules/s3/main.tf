@@ -1,16 +1,39 @@
 locals {
-  files = fileset(var.frontend_folder, "**")
+  has_frontend = var.frontend_folder != null
+  files        = local.has_frontend ? fileset(var.frontend_folder, "**") : []
+
+  bucket_config = merge(
+    { asset-storage = "Asset Bucket" },
+    local.has_frontend ? { static-hosting = "Static Hosting Bucket" } : {}
+  )
+
+  mime_types = {
+    html  = "text/html"
+    css   = "text/css"
+    js    = "application/javascript"
+    mjs   = "application/javascript"
+    json  = "application/json"
+    png   = "image/png"
+    jpg   = "image/jpeg"
+    jpeg  = "image/jpeg"
+    gif   = "image/gif"
+    webp  = "image/webp"
+    svg   = "image/svg+xml"
+    ico   = "image/x-icon"
+    woff  = "font/woff"
+    woff2 = "font/woff2"
+    ttf   = "font/ttf"
+    otf   = "font/otf"
+    txt   = "text/plain"
+    map   = "application/json"
+  }
 }
 
 resource "aws_s3_bucket" "buckets" {
-  for_each = {
-    static-hosting = "Static Hosting Bucket"
-    asset-storage  = "Asset Bucket"
-  }
+  for_each = local.bucket_config
 
-  bucket = "${var.project}-${var.environment}-${each.key}"
-
-  force_destroy = true //dev only
+  bucket        = "${var.project}-${var.environment}-${each.key}"
+  force_destroy = true # Dev only
 
   tags = {
     Name        = each.value
@@ -30,23 +53,7 @@ resource "aws_s3_bucket_cors_configuration" "asset_storage_cors" {
   }
 }
 
-//for dev only
-resource "aws_s3_bucket_policy" "asset_storage_policy" {
-  bucket = aws_s3_bucket.buckets["asset-storage"].id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = "*"
-      Action = ["s3:GetObject"]
-      Resource = "${aws_s3_bucket.buckets["asset-storage"].arn}/*"
-    }]
-  })
-}
-
-//for dev only
-resource "aws_s3_bucket_public_access_block" "bucket-policies" {
+resource "aws_s3_bucket_public_access_block" "bucket_policies" {
   for_each = aws_s3_bucket.buckets
 
   bucket = each.value.id
@@ -57,7 +64,22 @@ resource "aws_s3_bucket_public_access_block" "bucket-policies" {
   restrict_public_buckets = false
 }
 
+resource "aws_s3_bucket_policy" "asset_storage_policy" {
+  bucket = aws_s3_bucket.buckets["asset-storage"].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = "*"
+      Action    = ["s3:GetObject"]
+      Resource  = "${aws_s3_bucket.buckets["asset-storage"].arn}/*"
+    }]
+  })
+}
+
 resource "aws_s3_bucket_website_configuration" "vite_site" {
+  count  = local.has_frontend ? 1 : 0
   bucket = aws_s3_bucket.buckets["static-hosting"].id
 
   index_document {
@@ -65,47 +87,21 @@ resource "aws_s3_bucket_website_configuration" "vite_site" {
   }
 
   error_document {
-    key = "index.html" # Using index.html for errors to support SPA routing
+    key = "index.html"
   }
 }
-
 
 resource "aws_s3_object" "upload_files" {
   for_each = { for file in local.files : file => file }
 
   bucket = aws_s3_bucket.buckets["static-hosting"].id
-
-  key = each.key
-
+  key    = each.key
   source = "${var.frontend_folder}/${each.value}"
   etag   = filemd5("${var.frontend_folder}/${each.value}")
 
   content_type = lookup(
-    {
-      html = "text/html"
-      css  = "text/css"
-      js   = "application/javascript"
-      mjs  = "application/javascript"
-
-      json = "application/json"
-
-      png  = "image/png"
-      jpg  = "image/jpeg"
-      jpeg = "image/jpeg"
-      gif  = "image/gif"
-      webp = "image/webp"
-      svg  = "image/svg+xml"
-      ico  = "image/x-icon"
-
-      woff  = "font/woff"
-      woff2 = "font/woff2"
-      ttf   = "font/ttf"
-      otf   = "font/otf"
-
-      txt = "text/plain"
-      map = "application/json"
-    },
-    lower(regex("\\.([^.]+)$", each.value)[0]),
+    local.mime_types,
+    lower(element(reverse(split(".", each.value)), 0)),
     "application/octet-stream"
   )
 

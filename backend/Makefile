@@ -1,7 +1,7 @@
 DIST_DIR=../infra/artifacts/lambdas
 ZIP_NAME=function.zip
 
-FUNCTIONS=assets videos
+FUNCTIONS=assets webhooks
 
 .PHONY: all build zip swag-init
 
@@ -25,5 +25,12 @@ zip:
 
 
 swag-init:
-	@swag init -g cmd/assets/main.go -d . -o ./cmd/assets/docs --exclude "internal/modules/campaigns" --parseDependency --parseInternal
-	@swag init -g cmd/campaigns/main.go -d . -o ./cmd/campaigns/docs --exclude "internal/modules/assets" --parseDependency --parseInternal
+# 	@swag init -g cmd/assets/main.go -d . -o ./cmd/assets/docs --exclude "internal/modules/campaigns" --parseDependency --parseInternal
+# 	@swag init -g cmd/campaigns/main.go -d . -o ./cmd/campaigns/docs --exclude "internal/modules/assets" --parseDependency --parseInternal
+	@swag init \
+  -g cmd/webhooks/main.go \
+  -d ./ \
+  --exclude "internal/modules/assets,internal/modules/campaigns,internal/modules/users" \
+  -o ./cmd/webhooks/docs \
+  --parseDependency \
+  --parseInternal

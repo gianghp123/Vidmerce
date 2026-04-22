@@ -1,16 +1,11 @@
 routes:
-  assets:
-    path: /api/assets/{proxy+}
-    lambda_key: assets
-
-  videos:
-    path: /api/videos/{proxy+}
-    lambda_key: videos
-
   assets_root:
     path: /api/assets
     lambda_key: assets
+  assets:
+    path: /api/assets/{proxy+}
+    lambda_key: assets
+  webhooks:
+    path: /api/webhooks/{proxy+}
+    lambda_key: webhooks
 
-  videos_root:
-    path: /api/videos
-    lambda_key: videos

@@ -48,9 +48,9 @@ func setup() (*gin.Engine, *configs.AWSConfig) {
 		log.Fatalf("Failed to load AWS SDK config: %v", err)
 	}
 
-	dbClient := dynamodb.NewFromConfig(sdkConfig, awsCfg.DynamoDBOptions)
+	dbClient := dynamodb.NewFromConfig(sdkConfig)
 	s3Client := storage.NewS3Storage(
-		s3.NewFromConfig(sdkConfig, awsCfg.S3Options),
+		s3.NewFromConfig(sdkConfig),
 		s3Cfg.BucketName,
 	)
 

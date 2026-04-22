@@ -40,7 +40,7 @@ func setup() (*gin.Engine, *configs.AWSConfig) {
 		log.Fatalf("Failed to load AWS SDK config: %v", err)
 	}
 
-	dbClient := dynamodb.NewFromConfig(sdkConfig, awsCfg.DynamoDBOptions)
+	dbClient := dynamodb.NewFromConfig(sdkConfig)
 
 	r := gin.Default()
 	r.OPTIONS("/*any", func(c *gin.Context) {

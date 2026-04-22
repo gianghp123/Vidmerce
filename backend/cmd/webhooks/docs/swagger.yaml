@@ -1,0 +1,76 @@
+basePath: /api
+definitions:
+  github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any:
+    properties:
+      data: {}
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
+        description: optional
+    type: object
+  github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta:
+    properties:
+      has_more:
+        type: boolean
+      last_key:
+        description: Cursor-style (DynamoDB, etc.)
+      limit:
+        type: integer
+      page:
+        description: SQL-style pagination
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+host: localhost:3003
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is the Vidmerce Webhooks API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Webhooks API
+  version: "1.0"
+paths:
+  /webhooks/clerk:
+    post:
+      consumes:
+      - application/json
+      description: Process Clerk webhooks and update user metadata
+      parameters:
+      - description: Clerk webhook payload
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+      summary: Handle Clerk webhook
+      tags:
+      - webhooks
+schemes:
+- http
+swagger: "2.0"

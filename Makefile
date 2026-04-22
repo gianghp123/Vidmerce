@@ -3,11 +3,10 @@ SHELL := /bin/bash
 # --- Configuration ---
 ENV             ?= dev
 BACKEND_DIR     = backend
-FRONTEND_DIR		= frontend
+FRONTEND_DIR    = frontend
 SHARED_DIR      = shared
 SCHEMAS_DIR     = $(SHARED_DIR)/schemas
 SCRIPTS_DIR     = $(SHARED_DIR)/scripts
-
 
 TERRAFORM_PATH  = infra/envs/$(ENV)
 LOCAL_OVERRIDE  = $(TERRAFORM_PATH)/override.tf.json
@@ -21,14 +20,6 @@ GO_ENUMS_IMPORT = github.com/gianghp123/Vidmerce/backend/internal/core/enums
 TS_ENUMS_OUT    = $(FRONTEND_DIR)/src/lib/enums
 TS_MODELS_OUT   = $(FRONTEND_DIR)/src/lib/models
 
-
-# --- LocalStack & Endpoints ---
-# Thay đổi URL ở đây nếu bạn chạy LocalStack trên máy khác hoặc Docker Network
-LOCALSTACK_HOST = localhost
-LOCALSTACK_PORT = 4566
-LOCALSTACK_URL  = http://$(LOCALSTACK_HOST):$(LOCALSTACK_PORT)
-S3_ENDPOINT     = http://s3.localhost.localstack.cloud:$(LOCALSTACK_PORT)
-# S3_ENDPOINT     = http://$(LOCALSTACK_HOST):$(LOCALSTACK_PORT)
 # --- Terraform Settings ---
 TF_CMD          = terraform
 TF_FLAGS        ?=
@@ -40,7 +31,7 @@ export TF_LOG      = DEBUG
 export TF_LOG_PATH = terraform.log
 endif
 
-.PHONY: build deploy plan destroy setup-local setup-cloud test-lambda-local generate-types
+.PHONY: build deploy plan destroy setup-cloud test-lambda-local generate-types
 
 # --- Type Generation ---
 generate-types:
@@ -58,44 +49,11 @@ generate-types:
 		--models-dir $(TS_MODELS_OUT)
 	@echo "--- [GENERATE] All types updated successfully ---"
 
-# --- Helpers ---
-
-# Sử dụng printf để định dạng JSON sạch sẽ và dễ đọc hơn
-setup-local:
-	@PERSISTENCE=1 localstack start -e SERVICES=s3,dynamodb,lambda,iam -d
-	@cat > $(LOCAL_OVERRIDE) <<'EOF'
-	{
-	  "variable": {
-			"is_local": { "default": true }
-	  },
-	  "provider": {
-	    "aws": {
-	      "access_key": "test",
-	      "secret_key": "test",
-	      "skip_credentials_validation": true,
-	      "skip_metadata_api_check": true,
-	      "skip_requesting_account_id": true,
-	      "endpoints": {
-	        "dynamodb": "$(LOCALSTACK_URL)",
-	        "lambda":   "$(LOCALSTACK_URL)",
-	        "s3":       "$(S3_ENDPOINT)",
-	        "iam":      "$(LOCALSTACK_URL)",
-	        "sts":      "$(LOCALSTACK_URL)"
-# 					"apigatewayv2": "$(LOCALSTACK_URL)"
-	      }
-	    }
-	  }
-	}
-	EOF
-	@echo "--- [LOCAL] LocalStack override created at $(LOCAL_OVERRIDE) ---"
-
 setup-cloud:
-	@localstack stop
 	@rm -f $(LOCAL_OVERRIDE)
-	@echo "--- [CLOUD] LocalStack override removed. Ready for Real AWS. ---"
+	@echo "--- [CLOUD] Local override removed. Use real AWS credentials. ---"
 
 # --- Main Logic ---
-
 build:
 	@echo "--- Building Backend for $(ENV) ---"
 	cd $(BACKEND_DIR) && $(MAKE)
@@ -107,18 +65,17 @@ plan:
 	@cd $(TERRAFORM_PATH) && $(TF_CMD) plan -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
 deploy: setup-cloud build
-	@echo "--- Deploying to [$(ENV)] ---"
-	cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
+	@echo "--- Deploying to AWS [$(ENV)] ---"
+	@cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
-deploy-local: setup-local build
-	@echo "--- Deploying to LocalStack ([$(ENV)] config) ---"
-	cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
+deploy-local:
+	@echo "--- Deploying to AWS [$(ENV)] with local config (is_local=true) ---"
+	@cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) apply -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
-destroy: 
-	cd $(TERRAFORM_PATH) && $(TF_CMD) destroy -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
-
+destroy: setup-cloud
+	@echo "--- Destroying AWS [$(ENV)] ---"
+	@cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) destroy -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
 
 destroy-local:
-	@$(MAKE) setup-local
-	@cd $(TERRAFORM_PATH) && $(TF_CMD) destroy -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)
-	@$(MAKE) setup-cloud
+	@echo "--- Destroying AWS [$(ENV)] with local config ---"
+	@cd $(TERRAFORM_PATH) && $(TF_CMD) init && $(TF_CMD) destroy -auto-approve -parallelism=$(TF_PARALLELISM) $(TF_FLAGS)

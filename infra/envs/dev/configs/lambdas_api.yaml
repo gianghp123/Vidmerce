@@ -6,10 +6,8 @@ lambda_functions:
     runtime: provided.al2023
     s3_bucket_key: asset-storage
     db_table_key: MediaProjectTable
-  videos:
-    function_name: videos_lambda
+  webhooks:
+    function_name: webhooks_lambda
     handler: bootstrap
-    filename: artifacts/lambdas/videos/function.zip
+    filename: artifacts/lambdas/webhooks/function.zip
     runtime: provided.al2023
-    s3_bucket_key: asset-storage
-    db_table_key: MediaProjectTable
