@@ -1,10 +1,11 @@
 locals {
-  has_frontend = var.frontend_folder != null
-  files        = local.has_frontend ? fileset(var.frontend_folder, "**") : []
+  env_needs_frontend = var.environment == "staging" || var.environment == "prod"
+
+  files = local.env_needs_frontend ? fileset(var.frontend_folder, "**") : []
 
   bucket_config = merge(
     { asset-storage = "Asset Bucket" },
-    local.has_frontend ? { static-hosting = "Static Hosting Bucket" } : {}
+    local.env_needs_frontend ? { static-hosting = "Static Hosting Bucket" } : {}
   )
 
   mime_types = {
@@ -28,12 +29,11 @@ locals {
     map   = "application/json"
   }
 }
-
 resource "aws_s3_bucket" "buckets" {
   for_each = local.bucket_config
 
   bucket        = "${var.project}-${var.environment}-${each.key}"
-  force_destroy = true # Dev only
+  force_destroy = true
 
   tags = {
     Name        = each.value
@@ -79,7 +79,7 @@ resource "aws_s3_bucket_policy" "asset_storage_policy" {
 }
 
 resource "aws_s3_bucket_website_configuration" "vite_site" {
-  count  = local.has_frontend ? 1 : 0
+  count  = local.env_needs_frontend ? 1 : 0
   bucket = aws_s3_bucket.buckets["static-hosting"].id
 
   index_document {
@@ -94,10 +94,10 @@ resource "aws_s3_bucket_website_configuration" "vite_site" {
 resource "aws_s3_object" "upload_files" {
   for_each = { for file in local.files : file => file }
 
-  bucket = aws_s3_bucket.buckets["static-hosting"].id
-  key    = each.key
-  source = "${var.frontend_folder}/${each.value}"
-  etag   = filemd5("${var.frontend_folder}/${each.value}")
+  bucket       = aws_s3_bucket.buckets["static-hosting"].id
+  key          = each.key
+  source       = "${var.frontend_folder}/${each.value}"
+  etag         = filemd5("${var.frontend_folder}/${each.value}")
 
   content_type = lookup(
     local.mime_types,

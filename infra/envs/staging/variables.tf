@@ -1,6 +1,6 @@
 variable "environment" {
   type = string
-  default = "dev"
+  default = "staging"
   validation {
     condition = contains(["dev", "staging", "prod"], var.environment)
     error_message = "environment must be one of 'dev', 'staging', or 'prod'."
@@ -42,5 +42,23 @@ variable "dynamodb_table_configs" {
     tags = optional(object({
       Name        = string
     }))
+  }))
+}
+
+variable "lambda_functions" {
+  type = map(object({
+    function_name = string
+    handler = string
+    filename = string
+    runtime = string
+    s3_bucket_key    = string
+    db_table_key  = string
+  }))
+}
+
+variable "api_routes" {
+  type = map(object({
+    path       = string
+    lambda_key = string
   }))
 }
