@@ -13,43 +13,45 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gianghp123/Vidmerce/backend/internal/configs"
+	"github.com/gianghp123/Vidmerce/backend/internal/core"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/campaigns"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 var ginLambda *ginadapter.GinLambdaV2
 
-func setup() (*gin.Engine, *configs.AWSConfig) {
+func setup() (*gin.Engine, *configs.AWSConfig, *core.Clients) {
 	if _, err := os.Stat(".env"); err == nil {
 		log.Println("Found .env file, loading local configurations...")
 		_ = godotenv.Load()
 	}
 
+	logger := configs.InitLogger()
+	logger.Info("Initializing application", zap.String("mode", "startup"))
+
 	awsCfg := configs.LoadAWSConfig()
+	s3Cfg := configs.LoadS3Config()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	sdkConfig, err := config.LoadDefaultConfig(ctx)
+	awsClients, err := core.NewClients(context.TODO(), awsCfg, s3Cfg.BucketName)
 	if err != nil {
-		log.Fatalf("Failed to load AWS SDK config: %v", err)
+		log.Fatalf("Failed to init AWS clients: %v", err)
 	}
 
-	dbClient := dynamodb.NewFromConfig(sdkConfig)
-
 	r := gin.Default()
+
 	r.OPTIONS("/*any", func(c *gin.Context) {
 		c.Status(200)
 	})
-	api := r.Group("/api")
-	campaigns.RegisterRoutes(api, dbClient)
 
-	return r, awsCfg
+	api := r.Group("/api")
+
+	campaigns.RegisterRoutes(api, awsClients.DB)
+
+	return r, awsCfg, awsClients
 }
 
 func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -73,7 +75,7 @@ func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 // @BasePath  /api
 // @schemes   http
 func main() {
-	router, awsCfg := setup()
+	router, awsCfg, _ := setup()
 
 	if awsCfg.IsLocal {
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

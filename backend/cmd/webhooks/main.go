@@ -15,7 +15,6 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/config"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gianghp123/Vidmerce/backend/internal/configs"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/webhooks"
@@ -33,26 +32,21 @@ func setup() (*gin.Engine, *configs.AWSConfig) {
 	}
 
 	logger := configs.InitLogger()
-	logger.Info("Initializing webhooks service", zap.String("mode", "startup"))
+	logger.Info("Initializing application", zap.String("mode", "startup"))
 
 	awsCfg := configs.LoadAWSConfig()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	_, err := config.LoadDefaultConfig(ctx)
-	if err != nil {
-		log.Fatalf("Failed to load AWS SDK config: %v", err)
-	}
 
 	clerkConfig := configs.GetClerkConfig()
 	clerk.SetKey(clerkConfig.ClerkSecret)
 
 	r := gin.Default()
+
 	r.OPTIONS("/*any", func(c *gin.Context) {
 		c.Status(200)
 	})
+
 	api := r.Group("/api")
+
 	webhooks.RegisterRoutes(api)
 
 	return r, awsCfg
