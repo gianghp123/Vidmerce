@@ -22,6 +22,7 @@ func NewAssetController(svc services.AssetService) *AssetController {
 // CreateAsset godoc
 // @Summary      Create a new asset
 // @Description  Create a new asset with name, price, product URL and image count
+// @Security Bearer
 // @Tags         assets
 // @Accept       json
 // @Produce      json
@@ -49,6 +50,7 @@ func (ctrl *AssetController) CreateAsset(c *gin.Context) {
 // ConfirmUpload godoc
 // @Summary      Confirm asset upload
 // @Description  Confirm upload for an asset and generate image URLs
+// @Security ApiKeyAuth
 // @Tags         assets
 // @Accept       json
 // @Produce      json
@@ -77,12 +79,13 @@ func (ctrl *AssetController) ConfirmUpload(c *gin.Context) {
 // ListAssets godoc
 // @Summary      List assets
 // @Description  Get a paginated list of assets
+// @Security Bearer
 // @Tags         assets
 // @Accept       json
 // @Produce      json
 // @Param        limit  query     int     false  "Number of items per page"                Format(int32)
 // @Param        cursor query     string  false  "Pagination cursor for next page"
-// @Success      200    {object}  response.BaseResponse[[]res.AssetPreviewRes]
+// @Success      200    {object}  response.BaseResponse[[]res.AssetRes]
 // @Failure      400    {object}  response.BaseResponse[any]
 // @Failure      500    {object}  response.BaseResponse[any]
 // @Router       /assets [get]

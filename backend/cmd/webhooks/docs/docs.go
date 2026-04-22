@@ -55,19 +55,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -75,7 +75,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any": {
+        "response.BaseResponse-any": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -84,13 +84,13 @@ const docTemplate = `{
                     "description": "optional",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
+                            "$ref": "#/definitions/response.Meta"
                         }
                     ]
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta": {
+        "response.Meta": {
             "type": "object",
             "properties": {
                 "has_more": {

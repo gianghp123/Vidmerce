@@ -25,12 +25,23 @@ zip:
 
 
 swag-init:
-# 	@swag init -g cmd/assets/main.go -d . -o ./cmd/assets/docs --exclude "internal/modules/campaigns" --parseDependency --parseInternal
-# 	@swag init -g cmd/campaigns/main.go -d . -o ./cmd/campaigns/docs --exclude "internal/modules/assets" --parseDependency --parseInternal
 	@swag init \
-  -g cmd/webhooks/main.go \
-  -d ./ \
-  --exclude "internal/modules/assets,internal/modules/campaigns,internal/modules/users" \
-  -o ./cmd/webhooks/docs \
-  --parseDependency \
-  --parseInternal
+		-g main.go \
+		-d "./cmd/assets,internal/modules/assets" \
+		-o ./cmd/assets/docs \
+		--parseDependency \
+		--parseInternal
+
+	@swag init \
+		-g main.go \
+		-d "./cmd/webhooks,internal/modules/webhooks" \
+		-o ./cmd/webhooks/docs \
+		--parseDependency \
+		--parseInternal
+
+	@swag init \
+		-g main.go \
+		-d "./cmd/campaigns,internal/modules/campaigns" \
+		-o ./cmd/campaigns/docs \
+		--parseDependency \
+		--parseInternal

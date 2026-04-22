@@ -9,7 +9,6 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
             "url": "http://www.swagger.io/support",
@@ -26,6 +25,11 @@ const docTemplate = `{
     "paths": {
         "/assets": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Get a paginated list of assets",
                 "consumes": [
                     "application/json"
@@ -56,24 +60,29 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetPreviewRes"
+                            "$ref": "#/definitions/response.BaseResponse-array_res_AssetRes"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Create a new asset with name, price, product URL and image count",
                 "consumes": [
                     "application/json"
@@ -92,7 +101,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.CreateAssetReq"
+                            "$ref": "#/definitions/req.CreateAssetReq"
                         }
                     }
                 ],
@@ -100,19 +109,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_CreateAssetRes"
+                            "$ref": "#/definitions/response.BaseResponse-res_CreateAssetRes"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -138,7 +147,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.ImportAssetReq"
+                            "$ref": "#/definitions/req.ImportAssetReq"
                         }
                     }
                 ],
@@ -146,19 +155,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImportAssetRes"
+                            "$ref": "#/definitions/response.BaseResponse-res_ImportAssetRes"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -190,25 +199,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetRes"
+                            "$ref": "#/definitions/response.BaseResponse-res_AssetRes"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -216,6 +225,11 @@ const docTemplate = `{
         },
         "/assets/{id}/confirm": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Confirm upload for an asset and generate image URLs",
                 "consumes": [
                     "application/json"
@@ -240,25 +254,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ConfirmAssetRes"
+                            "$ref": "#/definitions/response.BaseResponse-res_ConfirmAssetRes"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -297,25 +311,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetUpload"
+                            "$ref": "#/definitions/response.BaseResponse-res_AssetUpload"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -354,25 +368,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -380,151 +394,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetPreviewRes": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetPreviewRes"
-                    }
-                },
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetRes": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetRes"
-                },
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetUpload": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetUpload"
-                },
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ConfirmAssetRes": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ConfirmAssetRes"
-                },
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_CreateAssetRes": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.CreateAssetRes"
-                },
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImportAssetRes": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImportAssetRes"
-                },
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta": {
-            "type": "object",
-            "properties": {
-                "has_more": {
-                    "type": "boolean"
-                },
-                "last_key": {
-                    "description": "Cursor-style (DynamoDB, etc.)"
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "page": {
-                    "description": "SQL-style pagination",
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                },
-                "total_pages": {
-                    "type": "integer"
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.CreateAssetReq": {
+        "req.CreateAssetReq": {
             "type": "object",
             "required": [
                 "name",
@@ -552,7 +422,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.ImportAssetReq": {
+        "req.ImportAssetReq": {
             "type": "object",
             "required": [
                 "productUrl"
@@ -564,33 +434,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetPreviewRes": {
-            "type": "object",
-            "properties": {
-                "assetId": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "image": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                },
-                "productUrl": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetRes": {
+        "res.AssetRes": {
             "type": "object",
             "properties": {
                 "assetId": {
@@ -602,7 +446,7 @@ const docTemplate = `{
                 "images": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo"
+                        "$ref": "#/definitions/res.ImageInfo"
                     }
                 },
                 "name": {
@@ -619,7 +463,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetUpload": {
+        "res.AssetUpload": {
             "type": "object",
             "properties": {
                 "expiresIn": {
@@ -636,7 +480,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ConfirmAssetRes": {
+        "res.ConfirmAssetRes": {
             "type": "object",
             "properties": {
                 "assetId": {
@@ -645,7 +489,7 @@ const docTemplate = `{
                 "images": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo"
+                        "$ref": "#/definitions/res.ImageInfo"
                     }
                 },
                 "status": {
@@ -653,7 +497,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.CreateAssetRes": {
+        "res.CreateAssetRes": {
             "type": "object",
             "properties": {
                 "assetId": {
@@ -665,12 +509,12 @@ const docTemplate = `{
                 "uploads": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.UploadInfo"
+                        "$ref": "#/definitions/res.UploadInfo"
                     }
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo": {
+        "res.ImageInfo": {
             "type": "object",
             "properties": {
                 "imageId": {
@@ -687,7 +531,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImportAssetRes": {
+        "res.ImportAssetRes": {
             "type": "object",
             "properties": {
                 "assetId": {
@@ -698,7 +542,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.UploadInfo": {
+        "res.UploadInfo": {
             "type": "object",
             "properties": {
                 "expiresIn": {
@@ -714,6 +558,158 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "response.BaseResponse-any": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.BaseResponse-array_res_AssetRes": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/res.AssetRes"
+                    }
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.BaseResponse-res_AssetRes": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/res.AssetRes"
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.BaseResponse-res_AssetUpload": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/res.AssetUpload"
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.BaseResponse-res_ConfirmAssetRes": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/res.ConfirmAssetRes"
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.BaseResponse-res_CreateAssetRes": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/res.CreateAssetRes"
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.BaseResponse-res_ImportAssetRes": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/res.ImportAssetRes"
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.Meta": {
+            "type": "object",
+            "properties": {
+                "has_more": {
+                    "type": "boolean"
+                },
+                "last_key": {
+                    "description": "Cursor-style (DynamoDB, etc.)"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "description": "SQL-style pagination",
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "description": "Type \"Bearer\" followed by a space and JWT token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
@@ -724,8 +720,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:3000",
 	BasePath:         "/api",
 	Schemes:          []string{"http"},
-	Title:            "Swagger Assets API",
-	Description:      "This is the Vidmerce Assets API",
+	Title:            "Assets API",
+	Description:      "This API handles requests for Assets",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

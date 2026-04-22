@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gianghp123/Vidmerce/backend/internal/configs"
+	"github.com/gianghp123/Vidmerce/backend/internal/middlewares"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/webhooks"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -86,6 +87,16 @@ func main() {
 			AllowCredentials: true,
 			MaxAge:           12 * time.Hour,
 		}))
+
+		router.Use(func(c *gin.Context) {
+			clerkCfg := configs.GetClerkConfig()
+			if clerkCfg.ClerkSecret != "" {
+				middlewares.ClerkAuth()(c)
+			} else {
+				c.Next()
+			}
+		})
+
 		log.Printf("Running in LOCAL SERVER mode on http://localhost:3003")
 		if err := router.Run(":3003"); err != nil {
 			log.Fatalf("Failed to run local server: %v", err)

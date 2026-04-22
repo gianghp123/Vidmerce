@@ -6,20 +6,19 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/gianghp123/Vidmerce/backend/cmd/assets/docs" // swagger docs initialization
-	"github.com/gin-contrib/cors"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
+	_ "github.com/gianghp123/Vidmerce/backend/cmd/assets/docs"
 	"github.com/gianghp123/Vidmerce/backend/internal/configs"
 	"github.com/gianghp123/Vidmerce/backend/internal/core"
+	"github.com/gianghp123/Vidmerce/backend/internal/middlewares"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets"
-	"github.com/gianghp123/Vidmerce/backend/internal/modules/campaigns"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 )
 
@@ -44,28 +43,42 @@ func setup() (*gin.Engine, *configs.AWSConfig, *core.Clients) {
 
 	r := gin.Default()
 
-	r.OPTIONS("/*any", func(c *gin.Context) {
-		c.Status(200)
-	})
+	// 1. Apply CORS first
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
+	// Swagger (Public)
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// 2. Apply Auth Middleware
+	// In Lambda, auth is usually handled by API Gateway, so we check IsLocal
+	if awsCfg.IsLocal {
+		clerkCfg := configs.GetClerkConfig()
+		if clerkCfg.ClerkSecret != "" {
+			r.Use(middlewares.ClerkAuth())
+		}
+	}
+
+	// 3. Register Routes AFTER middleware
 	api := r.Group("/api")
-
 	assets.RegisterRoutes(api, awsClients.DB, awsClients.S3)
-	campaigns.RegisterRoutes(api, awsClients.DB)
 
 	return r, awsCfg, awsClients
 }
 
 func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-	log.Println("Full request", req)
 	return ginLambda.ProxyWithContext(ctx, req)
 }
 
-// @title           Swagger Assets API
-// @version         1.0
-// @description     This is the Vidmerce Assets API
-// @termsOfService  http://swagger.io/terms/
-
+// @title   	Assets API
+// @version  	1.0
+// @description This API handles requests for Assets
 // @contact.name   API Support
 // @contact.url    http://www.swagger.io/support
 // @contact.email  support@swagger.io
@@ -76,29 +89,22 @@ func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 // @host      localhost:3000
 // @BasePath  /api
 // @schemes   http
+
+// @query.collection.format multi
+
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func main() {
 	router, awsCfg, _ := setup()
 
 	if awsCfg.IsLocal {
-		// Swagger is configured via swag annotations in main.go and generated docs
-		// The docs.SwaggerInfo is already properly set by swag init
-		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-		router.Use(cors.New(cors.Config{
-			AllowOrigins:     []string{"*"}, // hoặc domain cụ thể
-			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-			ExposeHeaders:    []string{"Content-Length"},
-			AllowCredentials: true,
-			MaxAge:           12 * time.Hour,
-		}))
-		// Run as a standard HTTP server locally
 		log.Printf("Running in LOCAL SERVER mode on http://localhost:3000")
 		if err := router.Run(":3000"); err != nil {
 			log.Fatalf("Failed to run local server: %v", err)
 		}
 	} else {
-		// Run as an AWS Lambda function
 		log.Printf("Running in LAMBDA mode")
 		ginLambda = ginadapter.NewV2(router)
 		lambda.Start(Handler)

@@ -56,13 +56,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes"
+                            "$ref": "#/definitions/response.BaseResponse-array_res_CampaignRes"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -86,7 +86,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.CreateCampaignReq"
+                            "$ref": "#/definitions/req.CreateCampaignReq"
                         }
                     }
                 ],
@@ -94,19 +94,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes"
+                            "$ref": "#/definitions/response.BaseResponse-res_CampaignRes"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -138,19 +138,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes"
+                            "$ref": "#/definitions/response.BaseResponse-res_CampaignRes"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -180,19 +180,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -223,7 +223,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateCampaignReq"
+                            "$ref": "#/definitions/req.UpdateCampaignReq"
                         }
                     }
                 ],
@@ -231,19 +231,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes"
+                            "$ref": "#/definitions/response.BaseResponse-res_CampaignRes"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any"
+                            "$ref": "#/definitions/response.BaseResponse-any"
                         }
                     }
                 }
@@ -251,7 +251,124 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any": {
+        "req.CreateCampaignReq": {
+            "type": "object",
+            "required": [
+                "assetId"
+            ],
+            "properties": {
+                "assetId": {
+                    "type": "string",
+                    "example": "uuid"
+                }
+            }
+        },
+        "req.Slide": {
+            "type": "object",
+            "properties": {
+                "imageRole": {
+                    "type": "string"
+                },
+                "overlayText": {
+                    "type": "string"
+                },
+                "s3Key": {
+                    "type": "string"
+                },
+                "slideNumber": {
+                    "type": "integer"
+                }
+            }
+        },
+        "req.UpdateCampaignReq": {
+            "type": "object",
+            "properties": {
+                "storyboard": {
+                    "$ref": "#/definitions/req.UpdateStoryboard"
+                }
+            }
+        },
+        "req.UpdateStoryboard": {
+            "type": "object",
+            "properties": {
+                "bodyCopy": {
+                    "type": "string"
+                },
+                "cta": {
+                    "type": "string"
+                },
+                "headline": {
+                    "type": "string"
+                },
+                "slides": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/req.Slide"
+                    }
+                }
+            }
+        },
+        "res.CampaignRes": {
+            "type": "object",
+            "properties": {
+                "assetId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "storyboard": {
+                    "$ref": "#/definitions/res.Storyboard"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "res.Slide": {
+            "type": "object",
+            "properties": {
+                "imageRole": {
+                    "type": "string"
+                },
+                "overlayText": {
+                    "type": "string"
+                },
+                "s3Key": {
+                    "type": "string"
+                },
+                "slideNumber": {
+                    "type": "integer"
+                }
+            }
+        },
+        "res.Storyboard": {
+            "type": "object",
+            "properties": {
+                "bodyCopy": {
+                    "type": "string"
+                },
+                "cta": {
+                    "type": "string"
+                },
+                "headline": {
+                    "type": "string"
+                },
+                "slides": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/res.Slide"
+                    }
+                }
+            }
+        },
+        "response.BaseResponse-any": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -260,19 +377,19 @@ const docTemplate = `{
                     "description": "optional",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
+                            "$ref": "#/definitions/response.Meta"
                         }
                     ]
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes": {
+        "response.BaseResponse-array_res_CampaignRes": {
             "type": "object",
             "properties": {
                 "data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.CampaignRes"
+                        "$ref": "#/definitions/res.CampaignRes"
                     }
                 },
                 "error": {},
@@ -280,30 +397,30 @@ const docTemplate = `{
                     "description": "optional",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
+                            "$ref": "#/definitions/response.Meta"
                         }
                     ]
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res_CampaignRes": {
+        "response.BaseResponse-res_CampaignRes": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.CampaignRes"
+                    "$ref": "#/definitions/res.CampaignRes"
                 },
                 "error": {},
                 "meta": {
                     "description": "optional",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta"
+                            "$ref": "#/definitions/response.Meta"
                         }
                     ]
                 }
             }
         },
-        "github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta": {
+        "response.Meta": {
             "type": "object",
             "properties": {
                 "has_more": {
@@ -324,123 +441,6 @@ const docTemplate = `{
                 },
                 "total_pages": {
                     "type": "integer"
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.CreateCampaignReq": {
-            "type": "object",
-            "required": [
-                "assetId"
-            ],
-            "properties": {
-                "assetId": {
-                    "type": "string",
-                    "example": "uuid"
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.Slide": {
-            "type": "object",
-            "properties": {
-                "imageRole": {
-                    "type": "string"
-                },
-                "overlayText": {
-                    "type": "string"
-                },
-                "s3Key": {
-                    "type": "string"
-                },
-                "slideNumber": {
-                    "type": "integer"
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateCampaignReq": {
-            "type": "object",
-            "properties": {
-                "storyboard": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateStoryboard"
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.UpdateStoryboard": {
-            "type": "object",
-            "properties": {
-                "bodyCopy": {
-                    "type": "string"
-                },
-                "cta": {
-                    "type": "string"
-                },
-                "headline": {
-                    "type": "string"
-                },
-                "slides": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_req.Slide"
-                    }
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.CampaignRes": {
-            "type": "object",
-            "properties": {
-                "assetId": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "storyboard": {
-                    "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Storyboard"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Slide": {
-            "type": "object",
-            "properties": {
-                "imageRole": {
-                    "type": "string"
-                },
-                "overlayText": {
-                    "type": "string"
-                },
-                "s3Key": {
-                    "type": "string"
-                },
-                "slideNumber": {
-                    "type": "integer"
-                }
-            }
-        },
-        "github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Storyboard": {
-            "type": "object",
-            "properties": {
-                "bodyCopy": {
-                    "type": "string"
-                },
-                "cta": {
-                    "type": "string"
-                },
-                "headline": {
-                    "type": "string"
-                },
-                "slides": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_campaigns_dtos_res.Slide"
-                    }
                 }
             }
         }

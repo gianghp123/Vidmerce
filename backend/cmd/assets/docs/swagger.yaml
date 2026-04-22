@@ -1,93 +1,6 @@
 basePath: /api
 definitions:
-  github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any:
-    properties:
-      data: {}
-      error: {}
-      meta:
-        allOf:
-        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
-        description: optional
-    type: object
-  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetPreviewRes
-  : properties:
-      data:
-        items:
-          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetPreviewRes'
-        type: array
-      error: {}
-      meta:
-        allOf:
-        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
-        description: optional
-    type: object
-  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetRes
-  : properties:
-      data:
-        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetRes'
-      error: {}
-      meta:
-        allOf:
-        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
-        description: optional
-    type: object
-  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetUpload
-  : properties:
-      data:
-        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetUpload'
-      error: {}
-      meta:
-        allOf:
-        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
-        description: optional
-    type: object
-  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ConfirmAssetRes
-  : properties:
-      data:
-        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ConfirmAssetRes'
-      error: {}
-      meta:
-        allOf:
-        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
-        description: optional
-    type: object
-  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_CreateAssetRes
-  : properties:
-      data:
-        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.CreateAssetRes'
-      error: {}
-      meta:
-        allOf:
-        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
-        description: optional
-    type: object
-  ? github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImportAssetRes
-  : properties:
-      data:
-        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImportAssetRes'
-      error: {}
-      meta:
-        allOf:
-        - $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta'
-        description: optional
-    type: object
-  github_com_gianghp123_Vidmerce_backend_internal_core_response.Meta:
-    properties:
-      has_more:
-        type: boolean
-      last_key:
-        description: Cursor-style (DynamoDB, etc.)
-      limit:
-        type: integer
-      page:
-        description: SQL-style pagination
-        type: integer
-      total:
-        type: integer
-      total_pages:
-        type: integer
-    type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.CreateAssetReq:
+  req.CreateAssetReq:
     properties:
       imageCount:
         example: 3
@@ -108,7 +21,7 @@ definitions:
     - price
     - productUrl
     type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.ImportAssetReq:
+  req.ImportAssetReq:
     properties:
       productUrl:
         example: https://...
@@ -116,24 +29,7 @@ definitions:
     required:
     - productUrl
     type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetPreviewRes:
-    properties:
-      assetId:
-        type: string
-      createdAt:
-        type: string
-      image:
-        $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo'
-      name:
-        type: string
-      price:
-        type: number
-      productUrl:
-        type: string
-      status:
-        type: string
-    type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetRes:
+  res.AssetRes:
     properties:
       assetId:
         type: string
@@ -141,7 +37,7 @@ definitions:
         type: string
       images:
         items:
-          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo'
+          $ref: '#/definitions/res.ImageInfo'
         type: array
       name:
         type: string
@@ -152,7 +48,7 @@ definitions:
       status:
         type: string
     type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.AssetUpload:
+  res.AssetUpload:
     properties:
       expiresIn:
         example: 300
@@ -164,18 +60,18 @@ definitions:
         example: https://s3.amazonaws.com/bucket/asset-url
         type: string
     type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ConfirmAssetRes:
+  res.ConfirmAssetRes:
     properties:
       assetId:
         type: string
       images:
         items:
-          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo'
+          $ref: '#/definitions/res.ImageInfo'
         type: array
       status:
         type: string
     type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.CreateAssetRes:
+  res.CreateAssetRes:
     properties:
       assetId:
         type: string
@@ -183,10 +79,10 @@ definitions:
         type: string
       uploads:
         items:
-          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.UploadInfo'
+          $ref: '#/definitions/res.UploadInfo'
         type: array
     type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImageInfo:
+  res.ImageInfo:
     properties:
       imageId:
         type: string
@@ -197,14 +93,14 @@ definitions:
       status:
         type: string
     type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.ImportAssetRes:
+  res.ImportAssetRes:
     properties:
       assetId:
         type: string
       jobId:
         type: string
     type: object
-  github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res.UploadInfo:
+  res.UploadInfo:
     properties:
       expiresIn:
         type: integer
@@ -215,18 +111,104 @@ definitions:
       uploadUrl:
         type: string
     type: object
+  response.BaseResponse-any:
+    properties:
+      data: {}
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/response.Meta'
+        description: optional
+    type: object
+  response.BaseResponse-array_res_AssetRes:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/res.AssetRes'
+        type: array
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/response.Meta'
+        description: optional
+    type: object
+  response.BaseResponse-res_AssetRes:
+    properties:
+      data:
+        $ref: '#/definitions/res.AssetRes'
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/response.Meta'
+        description: optional
+    type: object
+  response.BaseResponse-res_AssetUpload:
+    properties:
+      data:
+        $ref: '#/definitions/res.AssetUpload'
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/response.Meta'
+        description: optional
+    type: object
+  response.BaseResponse-res_ConfirmAssetRes:
+    properties:
+      data:
+        $ref: '#/definitions/res.ConfirmAssetRes'
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/response.Meta'
+        description: optional
+    type: object
+  response.BaseResponse-res_CreateAssetRes:
+    properties:
+      data:
+        $ref: '#/definitions/res.CreateAssetRes'
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/response.Meta'
+        description: optional
+    type: object
+  response.BaseResponse-res_ImportAssetRes:
+    properties:
+      data:
+        $ref: '#/definitions/res.ImportAssetRes'
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/response.Meta'
+        description: optional
+    type: object
+  response.Meta:
+    properties:
+      has_more:
+        type: boolean
+      last_key:
+        description: Cursor-style (DynamoDB, etc.)
+      limit:
+        type: integer
+      page:
+        description: SQL-style pagination
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
 host: localhost:3000
 info:
   contact:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: This is the Vidmerce Assets API
+  description: This API handles requests for Assets
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: Swagger Assets API
+  title: Assets API
   version: "1.0"
 paths:
   /assets:
@@ -250,15 +232,17 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-array_github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetPreviewRes'
+            $ref: '#/definitions/response.BaseResponse-array_res_AssetRes'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
+      security:
+      - Bearer: []
       summary: List assets
       tags:
       - assets
@@ -272,22 +256,24 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.CreateAssetReq'
+          $ref: '#/definitions/req.CreateAssetReq'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_CreateAssetRes'
+            $ref: '#/definitions/response.BaseResponse-res_CreateAssetRes'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
+      security:
+      - Bearer: []
       summary: Create a new asset
       tags:
       - assets
@@ -308,19 +294,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetRes'
+            $ref: '#/definitions/response.BaseResponse-res_AssetRes'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
       summary: Get asset by ID
       tags:
       - assets
@@ -341,19 +327,21 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ConfirmAssetRes'
+            $ref: '#/definitions/response.BaseResponse-res_ConfirmAssetRes'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
+      security:
+      - ApiKeyAuth: []
       summary: Confirm asset upload
       tags:
       - assets
@@ -379,19 +367,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
       summary: Delete asset image
       tags:
       - assets
@@ -417,19 +405,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_AssetUpload'
+            $ref: '#/definitions/response.BaseResponse-res_AssetUpload'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
       summary: Get image upload URL
       tags:
       - assets
@@ -444,25 +432,31 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_req.ImportAssetReq'
+          $ref: '#/definitions/req.ImportAssetReq'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-github_com_gianghp123_Vidmerce_backend_internal_modules_assets_dtos_res_ImportAssetRes'
+            $ref: '#/definitions/response.BaseResponse-res_ImportAssetRes'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/github_com_gianghp123_Vidmerce_backend_internal_core_response.BaseResponse-any'
+            $ref: '#/definitions/response.BaseResponse-any'
       summary: Import asset from product URL
       tags:
       - assets
 schemes:
 - http
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
