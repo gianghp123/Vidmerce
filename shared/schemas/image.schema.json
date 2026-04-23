@@ -11,14 +11,6 @@
         "fileKey": {
           "type": "string",
           "description": "S3 file key"
-        },
-        "status": {
-          "$ref": "enums.schema.json#/definitions/ImageStatus"
-        },
-        "order": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Image order"
         }
       },
       "required": ["fileKey", "status", "order"]

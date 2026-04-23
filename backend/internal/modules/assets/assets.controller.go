@@ -29,7 +29,7 @@ func NewAssetController(svc services.AssetService) *AssetController {
 // @Accept       json
 // @Produce      json
 // @Param        body  body      req.CreateAssetReq  true  "Create asset request"
-// @Success      201   {object}  response.BaseResponse[res.CreateAssetRes]
+// @Success      201   {object}  response.BaseResponse[res.PresignedUrlsRes]
 // @Failure      400   {object}  response.BaseResponse[any]
 // @Failure      500   {object}  response.BaseResponse[any]
 // @Router       /assets [post]
@@ -58,6 +58,7 @@ func (ctrl *AssetController) CreateAsset(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "Asset ID"
+// @Param        body  body      req.ConfirmUploadReq  true  "Confirm upload request"
 // @Success      200  {object}  response.BaseResponse[res.ConfirmAssetRes]
 // @Failure      400  {object}  response.BaseResponse[any]
 // @Failure      404  {object}  response.BaseResponse[any]
@@ -70,13 +71,16 @@ func (ctrl *AssetController) ConfirmUpload(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest("asset ID is required")))
 		return
 	}
-
-	result, appErr := ctrl.svc.ConfirmUpload(c.Request.Context(), assetID)
+	var body req.ConfirmUploadReq
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest(err.Error())))
+		return
+	}
+	result, appErr := ctrl.svc.ConfirmUpload(c.Request.Context(), assetID, body)
 	if appErr != nil {
 		c.JSON(appErr.Code, response.Fail(appErr))
 		return
 	}
-
 	c.JSON(http.StatusOK, response.Success(result))
 }
 
@@ -133,43 +137,6 @@ func (ctrl *AssetController) GetAsset(c *gin.Context) {
 	}
 
 	result, appErr := ctrl.svc.GetAsset(c.Request.Context(), assetID)
-	if appErr != nil {
-		c.JSON(appErr.Code, response.Fail(appErr))
-		return
-	}
-
-	c.JSON(http.StatusOK, response.Success(result))
-}
-
-// GetImageUploadUrl godoc
-// @Summary      Get image upload URL
-// @Description  Generate a presigned URL for uploading an image to an asset
-// @Security Bearer
-// @Tags         assets
-// @Accept       json
-// @Produce      json
-// @Param        id         path      string  true  "Asset ID"
-// @Param        fileName   query     string  true  "File name"
-// @Success      200  {object}  response.BaseResponse[res.AssetUpload]
-// @Failure      400  {object}  response.BaseResponse[any]
-// @Failure      404  {object}  response.BaseResponse[any]
-// @Failure      500  {object}  response.BaseResponse[any]
-// @Router       /assets/{id}/images/upload-url [get]
-func (ctrl *AssetController) GetImageUploadUrl(c *gin.Context) {
-	utils.LogRequestHeaders(c, configs.GetLogger())
-	assetID := c.Param("id")
-	if assetID == "" {
-		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest("asset ID is required")))
-		return
-	}
-
-	var query req.GetImageUploadUrlReq
-	if err := c.ShouldBindQuery(&query); err != nil {
-		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest(err.Error())))
-		return
-	}
-
-	result, appErr := ctrl.svc.GetImageUploadUrl(c.Request.Context(), assetID, query.FileName)
 	if appErr != nil {
 		c.JSON(appErr.Code, response.Fail(appErr))
 		return

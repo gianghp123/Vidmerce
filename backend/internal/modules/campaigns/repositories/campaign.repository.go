@@ -24,7 +24,7 @@ type CampaignRepository interface {
 	Update(ctx context.Context, campaign models.CampaignEntity) error
 	Delete(ctx context.Context, id string) error
 	FindActiveJobsByTargetID(ctx context.Context, targetID string) ([]models.JobEntity, error)
-	DBClient() *dynamodb.Client
+	CreateWithJob(ctx context.Context, campaign models.CampaignEntity, job models.JobEntity) error
 }
 
 type campaignRepository struct {
@@ -33,10 +33,6 @@ type campaignRepository struct {
 
 func NewCampaignRepository(dbClient *dynamodb.Client) CampaignRepository {
 	return &campaignRepository{dbClient: dbClient}
-}
-
-func (r *campaignRepository) DBClient() *dynamodb.Client {
-	return r.dbClient
 }
 
 func (r *campaignRepository) FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.CampaignEntity], error) {
@@ -228,4 +224,23 @@ func (r *campaignRepository) FindActiveJobsByTargetID(ctx context.Context, targe
 	}
 
 	return items, nil
+}
+
+func (r *campaignRepository) CreateWithJob(ctx context.Context, campaign models.CampaignEntity, job models.JobEntity) error {
+	campaignMap, err := attributevalue.MarshalMap(campaign)
+	if err != nil {
+		return err
+	}
+	jobMap, err := attributevalue.MarshalMap(job)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.dbClient.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+		TransactItems: []types.TransactWriteItem{
+			{Put: &types.Put{TableName: aws.String(core.TableName), Item: campaignMap}},
+			{Put: &types.Put{TableName: aws.String(core.TableName), Item: jobMap}},
+		},
+	})
+	return err
 }

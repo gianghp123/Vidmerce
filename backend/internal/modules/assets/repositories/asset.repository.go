@@ -22,13 +22,12 @@ const MaxImagesPerAsset = 5
 var ErrMaxImagesReached = errors.New("maximum images per asset reached")
 
 type AssetRepository interface {
-	FindAll(ctx context.Context, userID string, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error)
+	FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error)
 	FindByID(ctx context.Context, id string) (*models.AssetEntity, error)
 	Create(ctx context.Context, asset models.AssetEntity) error
-	UpdateAssetStatus(ctx context.Context, id string, status string) error
 	IncrementImageCount(ctx context.Context, id string) (int, error)
-	TransactWriteItems(ctx context.Context, items ...interface{}) error
-	DBClient() *dynamodb.Client
+	CreateWithImages(ctx context.Context, asset models.AssetEntity, images []models.ImageEntity) error
+	CreateWithJob(ctx context.Context, asset models.AssetEntity, job models.JobEntity) error
 }
 
 type assetRepository struct {
@@ -39,50 +38,26 @@ func NewAssetRepository(dbClient *dynamodb.Client) AssetRepository {
 	return &assetRepository{dbClient: dbClient}
 }
 
-func (r *assetRepository) DBClient() *dynamodb.Client {
-	return r.dbClient
-}
-
-func (r *assetRepository) FindAll(ctx context.Context, userID string, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error) {
+func (r *assetRepository) FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error) {
 	exclusiveStartKey, err := core.DecodeCursor(lastKey)
 	if err != nil {
 		return nil, err
 	}
 
-	var input *dynamodb.QueryInput
+	keyCond := expression.Key("Gsi1Pk").Equal(expression.Value(string(core.Gsi1PkEntityAsset)))
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+	if err != nil {
+		return nil, err
+	}
 
-	if userID != "" {
-		pkValue := string(core.PkPrefixUser) + core.KeySeparator + userID
-		keyCond := expression.Key("Pk").Equal(expression.Value(pkValue))
-		expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
-		if err != nil {
-			return nil, err
-		}
-
-		input = &dynamodb.QueryInput{
-			TableName:                 aws.String(core.TableName),
-			KeyConditionExpression:    expr.KeyCondition(),
-			ExpressionAttributeNames:  expr.Names(),
-			ExpressionAttributeValues: expr.Values(),
-			Limit:                     aws.Int32(int32(limit)),
-			ScanIndexForward:          aws.Bool(true),
-		}
-	} else {
-		keyCond := expression.Key("Gsi1Pk").Equal(expression.Value(string(core.Gsi1PkEntityAsset)))
-		expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
-		if err != nil {
-			return nil, err
-		}
-
-		input = &dynamodb.QueryInput{
-			TableName:                 aws.String(core.TableName),
-			IndexName:                 aws.String("GSI1"),
-			KeyConditionExpression:    expr.KeyCondition(),
-			ExpressionAttributeNames:  expr.Names(),
-			ExpressionAttributeValues: expr.Values(),
-			Limit:                     aws.Int32(int32(limit)),
-			ScanIndexForward:          aws.Bool(false),
-		}
+	input := &dynamodb.QueryInput{
+		TableName:                 aws.String(core.TableName),
+		IndexName:                 aws.String("GSI1"),
+		KeyConditionExpression:    expr.KeyCondition(),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		Limit:                     aws.Int32(int32(limit)),
+		ScanIndexForward:          aws.Bool(false),
 	}
 
 	if exclusiveStartKey != nil {
@@ -157,42 +132,9 @@ func (r *assetRepository) Create(ctx context.Context, asset models.AssetEntity) 
 		return err
 	}
 
-	resp, err := r.dbClient.PutItem(ctx, &dynamodb.PutItemInput{
+	_, err = r.dbClient.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: aws.String(core.TableName),
 		Item:      item,
-	})
-	if err != nil {
-		return err
-	}
-
-	if resp.Attributes != nil {
-		if err := attributevalue.UnmarshalMap(resp.Attributes, &asset); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (r *assetRepository) UpdateAssetStatus(ctx context.Context, id string, status string) error {
-	item, err := attributevalue.MarshalMap(models.BaseItem{
-		Pk: string(core.PkPrefixAsset) + core.KeySeparator + id,
-		Sk: string(core.SkPrefixAsset) + core.KeySeparator + id,
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = r.dbClient.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName:        aws.String(core.TableName),
-		Key:              item,
-		UpdateExpression: aws.String("SET #status = :status"),
-		ExpressionAttributeNames: map[string]string{
-			"#status": "status",
-		},
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":status": &types.AttributeValueMemberS{Value: status},
-		},
 	})
 	return err
 }
@@ -239,27 +181,42 @@ func (r *assetRepository) IncrementImageCount(ctx context.Context, id string) (i
 	return result.ImageCount, nil
 }
 
-func (r *assetRepository) TransactWriteItems(ctx context.Context, items ...interface{}) error {
-	if len(items) == 0 {
-		return nil
-	}
+func (r *assetRepository) CreateWithImages(ctx context.Context, asset models.AssetEntity, images []models.ImageEntity) error {
+	items := make([]types.TransactWriteItem, 0, 1+len(images))
 
-	transactItems := make([]types.TransactWriteItem, len(items))
-	for i, item := range items {
-		itemMap, err := attributevalue.MarshalMap(item)
+	assetMap, err := attributevalue.MarshalMap(asset)
+	if err != nil {
+		return err
+	}
+	items = append(items, types.TransactWriteItem{Put: &types.Put{TableName: aws.String(core.TableName), Item: assetMap}})
+
+	for _, img := range images {
+		imgMap, err := attributevalue.MarshalMap(img)
 		if err != nil {
 			return err
 		}
-		transactItems[i] = types.TransactWriteItem{
-			Put: &types.Put{
-				TableName: aws.String(core.TableName),
-				Item:      itemMap,
-			},
-		}
+		items = append(items, types.TransactWriteItem{Put: &types.Put{TableName: aws.String(core.TableName), Item: imgMap}})
 	}
 
-	_, err := r.dbClient.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
-		TransactItems: transactItems,
+	_, err = r.dbClient.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{TransactItems: items})
+	return err
+}
+
+func (r *assetRepository) CreateWithJob(ctx context.Context, asset models.AssetEntity, job models.JobEntity) error {
+	assetMap, err := attributevalue.MarshalMap(asset)
+	if err != nil {
+		return err
+	}
+	jobMap, err := attributevalue.MarshalMap(job)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.dbClient.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+		TransactItems: []types.TransactWriteItem{
+			{Put: &types.Put{TableName: aws.String(core.TableName), Item: assetMap}},
+			{Put: &types.Put{TableName: aws.String(core.TableName), Item: jobMap}},
+		},
 	})
 	return err
 }

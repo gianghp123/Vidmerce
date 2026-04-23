@@ -6,13 +6,8 @@
   "definitions": {
     "AssetStatus": {
       "type": "string",
-      "enum": ["IMPORTING", "UPLOADING", "DRAFT", "COMPLETED", "PARTIAL", "FAILED"],
+      "enum": ["IMPORTING", "COMPLETED", "FAILED"],
       "description": "Asset processing status"
-    },
-    "ImageStatus": {
-      "type": "string",
-      "enum": ["UPLOADING", "COMPLETED", "FAILED"],
-      "description": "Image processing status"
     },
     "CampaignStatus": {
       "type": "string",

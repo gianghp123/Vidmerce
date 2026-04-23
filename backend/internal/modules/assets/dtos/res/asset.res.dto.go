@@ -10,19 +10,15 @@ type UploadInfo struct {
 type ImageInfo struct {
 	ImageID  string `json:"imageId"`
 	ImageURL string `json:"imageUrl"`
-	Order    int    `json:"order"`
-	Status   string `json:"status"`
 }
 
-type CreateAssetRes struct {
+type PresignedUrlsRes struct {
 	AssetID string       `json:"assetId"`
-	Status  string       `json:"status"`
 	Uploads []UploadInfo `json:"uploads"`
 }
 
 type ConfirmAssetRes struct {
 	AssetID string      `json:"assetId"`
-	Status  string      `json:"status"`
 	Images  []ImageInfo `json:"images"`
 }
 

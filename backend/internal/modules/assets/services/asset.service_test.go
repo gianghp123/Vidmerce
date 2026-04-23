@@ -34,44 +34,32 @@ func createAuthContext(userID string) context.Context {
 
 // ==================== CreateAsset Tests ====================
 
-func TestCreateAsset(t *testing.T) {
+func TestCreateAsset_PresignedUrls(t *testing.T) {
 	tests := []struct {
 		name          string
 		req           req.CreateAssetReq
 		setupMock     func(*repoMocks.MockAssetRepository, *repoMocks.MockImageRepository, *storage.MockStorage)
 		wantErr       bool
 		wantCode      int
-		wantStatus    string
 		wantUploadLen int
 	}{
 		{
 			name: "success",
 			req: req.CreateAssetReq{
-				Name:       "Test Asset",
-				Price:      99.99,
-				ProductURL: "https://example.com/product",
 				ImageCount: 1,
 			},
 			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
-				assetRepo.On("Create", mock.Anything, mock.AnythingOfType("models.AssetEntity")).Return(nil)
-				imageRepo.On("Create", mock.Anything, mock.AnythingOfType("[]models.ImageEntity")).Return(nil)
 				storageMock.On("GeneratePresignedUploadURL", mock.Anything, mock.Anything, "image/jpeg", mock.Anything).Return("https://upload.url/1", nil)
 			},
 			wantErr:       false,
-			wantStatus:    "UPLOADING",
 			wantUploadLen: 1,
 		},
 		{
 			name: "success multiple images",
 			req: req.CreateAssetReq{
-				Name:       "Test Asset",
-				Price:      99.99,
-				ProductURL: "https://example.com/product",
 				ImageCount: 3,
 			},
 			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
-				assetRepo.On("Create", mock.Anything, mock.AnythingOfType("models.AssetEntity")).Return(nil)
-				imageRepo.On("Create", mock.Anything, mock.AnythingOfType("[]models.ImageEntity")).Return(nil)
 				storageMock.On("GeneratePresignedUploadURL", mock.Anything, mock.Anything, "image/jpeg", mock.Anything).Return("https://upload.url", nil)
 			},
 			wantErr:       false,
@@ -80,14 +68,9 @@ func TestCreateAsset(t *testing.T) {
 		{
 			name: "default image count",
 			req: req.CreateAssetReq{
-				Name:       "Test Asset",
-				Price:      99.99,
-				ProductURL: "https://example.com/product",
 				ImageCount: 0,
 			},
 			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
-				assetRepo.On("Create", mock.Anything, mock.AnythingOfType("models.AssetEntity")).Return(nil)
-				imageRepo.On("Create", mock.Anything, mock.AnythingOfType("[]models.ImageEntity")).Return(nil)
 				storageMock.On("GeneratePresignedUploadURL", mock.Anything, mock.Anything, "image/jpeg", mock.Anything).Return("https://upload.url", nil)
 			},
 			wantErr:       false,
@@ -96,9 +79,6 @@ func TestCreateAsset(t *testing.T) {
 		{
 			name: "exceeds max images",
 			req: req.CreateAssetReq{
-				Name:       "Test Asset",
-				Price:      99.99,
-				ProductURL: "https://example.com/product",
 				ImageCount: 6,
 			},
 			setupMock: nil,
@@ -107,44 +87,10 @@ func TestCreateAsset(t *testing.T) {
 		{
 			name: "storage error",
 			req: req.CreateAssetReq{
-				Name:       "Test Asset",
-				Price:      99.99,
-				ProductURL: "https://example.com/product",
 				ImageCount: 1,
 			},
 			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
 				storageMock.On("GeneratePresignedUploadURL", mock.Anything, mock.Anything, "image/jpeg", mock.Anything).Return("", errors.New("storage error"))
-			},
-			wantErr:  true,
-			wantCode: 500,
-		},
-		{
-			name: "image repo error",
-			req: req.CreateAssetReq{
-				Name:       "Test Asset",
-				Price:      99.99,
-				ProductURL: "https://example.com/product",
-				ImageCount: 1,
-			},
-			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
-				storageMock.On("GeneratePresignedUploadURL", mock.Anything, mock.Anything, "image/jpeg", mock.Anything).Return("https://upload.url", nil)
-				imageRepo.On("Create", mock.Anything, mock.AnythingOfType("[]models.ImageEntity")).Return(errors.New("db error"))
-			},
-			wantErr:  true,
-			wantCode: 500,
-		},
-		{
-			name: "asset repo error",
-			req: req.CreateAssetReq{
-				Name:       "Test Asset",
-				Price:      99.99,
-				ProductURL: "https://example.com/product",
-				ImageCount: 1,
-			},
-			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
-				storageMock.On("GeneratePresignedUploadURL", mock.Anything, mock.Anything, "image/jpeg", mock.Anything).Return("https://upload.url", nil)
-				imageRepo.On("Create", mock.Anything, mock.AnythingOfType("[]models.ImageEntity")).Return(nil)
-				assetRepo.On("Create", mock.Anything, mock.AnythingOfType("models.AssetEntity")).Return(errors.New("db error"))
 			},
 			wantErr:  true,
 			wantCode: 500,
@@ -170,9 +116,7 @@ func TestCreateAsset(t *testing.T) {
 			} else {
 				assert.Nil(t, appErr)
 				assert.NotNil(t, result)
-				if tt.wantStatus != "" {
-					assert.Equal(t, tt.wantStatus, result.Status)
-				}
+				assert.NotEmpty(t, result.AssetID)
 				if tt.wantUploadLen > 0 {
 					assert.Equal(t, tt.wantUploadLen, len(result.Uploads))
 				}
@@ -184,22 +128,10 @@ func TestCreateAsset(t *testing.T) {
 // ==================== ConfirmUpload Tests ====================
 
 func TestConfirmUpload(t *testing.T) {
-	uploadingAsset := &models.AssetEntity{
-		BaseItem: models.BaseItem{
-			Pk: "USER#test-user-id",
-			Sk: "ASSET#test-asset-id",
-		},
-		Name:       "Test Asset",
-		Price:      99.99,
-		ProductURL: "https://example.com",
-		Status:     enums.AssetStatusUploading,
-		ImageCount: 1,
-		CreatedAt:  "2024-01-01T00:00:00Z",
-	}
-
 	tests := []struct {
 		name      string
 		assetID   string
+		req       req.ConfirmUploadReq
 		setupMock func(*repoMocks.MockAssetRepository, *repoMocks.MockImageRepository, *storage.MockStorage)
 		wantErr   bool
 		wantCode  int
@@ -207,100 +139,47 @@ func TestConfirmUpload(t *testing.T) {
 		{
 			name:    "success",
 			assetID: "test-asset-id",
+			req: req.ConfirmUploadReq{
+				Name:       "Test Asset",
+				Price:      99.99,
+				ProductURL: "https://example.com",
+				FileKeys:   []string{"user/test-user-id/asset/test-asset-id/1.jpg"},
+			},
 			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
-				assetRepo.On("FindByID", mock.Anything, "test-asset-id").Return(uploadingAsset, nil)
-				storageMock.On("ObjectExists", mock.Anything, "assets/test-asset-id/1.jpg").Return(true, nil)
-				imageRepo.On("UpdateStatus", mock.Anything, "test-asset-id", 1, "COMPLETED").Return(nil)
-				assetRepo.On("UpdateAssetStatus", mock.Anything, "test-asset-id", "COMPLETED").Return(nil)
+				storageMock.On("ObjectExists", mock.Anything, "user/test-user-id/asset/test-asset-id/1.jpg").Return(true, nil)
+				assetRepo.On("CreateWithImages", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 			},
 			wantErr: false,
 		},
 		{
-			name:    "asset not found",
-			assetID: "non-existent",
-			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository, _ *storage.MockStorage) {
-				assetRepo.On("FindByID", mock.Anything, "non-existent").Return(nil, nil)
-			},
-			wantErr:  true,
-			wantCode: 404,
-		},
-		{
-			name:    "asset repo error",
-			assetID: "test-id",
-			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository, _ *storage.MockStorage) {
-				assetRepo.On("FindByID", mock.Anything, "test-id").Return(nil, errors.New("db error"))
-			},
-			wantErr:  true,
-			wantCode: 500,
-		},
-		{
-			name:    "wrong status",
-			assetID: "test-id",
-			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository, _ *storage.MockStorage) {
-				asset := &models.AssetEntity{
-					BaseItem: models.BaseItem{
-						Pk: "USER#test-user-id",
-						Sk: "ASSET#test-id",
-					},
-					Status:     enums.AssetStatusCompleted,
-					ImageCount: 1,
-				}
-				assetRepo.On("FindByID", mock.Anything, "test-id").Return(asset, nil)
-			},
-			wantErr:  true,
-			wantCode: 400,
-		},
-		{
 			name:    "image not uploaded",
-			assetID: "test-id",
-			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
-				assetRepo.On("FindByID", mock.Anything, "test-id").Return(uploadingAsset, nil)
-				storageMock.On("ObjectExists", mock.Anything, "assets/test-id/1.jpg").Return(false, nil)
+			assetID: "test-asset-id",
+			req: req.ConfirmUploadReq{
+				Name:       "Test Asset",
+				Price:      99.99,
+				ProductURL: "https://example.com",
+				FileKeys:   []string{"user/test-user-id/asset/test-asset-id/1.jpg"},
+			},
+			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
+				storageMock.On("ObjectExists", mock.Anything, "user/test-user-id/asset/test-asset-id/1.jpg").Return(false, nil)
 			},
 			wantErr:  true,
 			wantCode: 400,
 		},
 		{
 			name:    "storage error",
-			assetID: "test-id",
-			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
-				assetRepo.On("FindByID", mock.Anything, "test-id").Return(uploadingAsset, nil)
-				storageMock.On("ObjectExists", mock.Anything, "assets/test-id/1.jpg").Return(false, errors.New("storage error"))
-			},
-			wantErr:  true,
-			wantCode: 500,
-		},
-		{
-			name:    "update image status error",
-			assetID: "test-id",
-			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
-				assetRepo.On("FindByID", mock.Anything, "test-id").Return(uploadingAsset, nil)
-				storageMock.On("ObjectExists", mock.Anything, "assets/test-id/1.jpg").Return(true, nil)
-				imageRepo.On("UpdateStatus", mock.Anything, "test-id", 1, "COMPLETED").Return(errors.New("db error"))
-			},
-			wantErr:  true,
-			wantCode: 500,
-		},
-		{
-			name:    "update asset status error",
-			assetID: "test-id",
-			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
-				assetRepo.On("FindByID", mock.Anything, "test-id").Return(uploadingAsset, nil)
-				storageMock.On("ObjectExists", mock.Anything, "assets/test-id/1.jpg").Return(true, nil)
-				imageRepo.On("UpdateStatus", mock.Anything, "test-id", 1, "COMPLETED").Return(nil)
-				assetRepo.On("UpdateAssetStatus", mock.Anything, "test-id", "COMPLETED").Return(errors.New("db error"))
-			},
-			wantErr:  true,
-			wantCode: 500,
-		},
-		{
-			name:    "ownership check fails",
 			assetID: "test-asset-id",
-			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository, _ *storage.MockStorage) {
-				assetRepo.On("FindByID", mock.Anything, "test-asset-id").Return(uploadingAsset, nil)
+			req: req.ConfirmUploadReq{
+				Name:       "Test Asset",
+				Price:      99.99,
+				ProductURL: "https://example.com",
+				FileKeys:   []string{"user/test-user-id/asset/test-asset-id/1.jpg"},
+			},
+			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository, storageMock *storage.MockStorage) {
+				storageMock.On("ObjectExists", mock.Anything, "user/test-user-id/asset/test-asset-id/1.jpg").Return(false, errors.New("storage error"))
 			},
 			wantErr:  true,
-			wantCode: 403,
+			wantCode: 500,
 		},
 	}
 
@@ -310,7 +189,7 @@ func TestConfirmUpload(t *testing.T) {
 			tt.setupMock(assetRepo, imageRepo, storageMock)
 
 			ctx := createAuthContext("test-user-id")
-			result, appErr := svc.ConfirmUpload(ctx, tt.assetID)
+			result, appErr := svc.ConfirmUpload(ctx, tt.assetID, tt.req)
 
 			if tt.wantErr {
 				assert.Nil(t, result)
@@ -322,7 +201,6 @@ func TestConfirmUpload(t *testing.T) {
 				assert.Nil(t, appErr)
 				assert.NotNil(t, result)
 				assert.Equal(t, tt.assetID, result.AssetID)
-				assert.Equal(t, "COMPLETED", result.Status)
 			}
 		})
 	}
@@ -365,7 +243,6 @@ func TestGetAsset(t *testing.T) {
 							Sk: "IMAGE#1",
 						},
 						FileKey: "assets/test-id/1.jpg",
-						Status:  enums.ImageStatusCompleted,
 						Order:   1,
 					},
 				}
@@ -373,7 +250,7 @@ func TestGetAsset(t *testing.T) {
 				imageRepo.On("FindByAssetID", mock.Anything, "test-id").Return(images, nil)
 			},
 			wantErr: false,
-			wantID:  "ASSET#test-id",
+			wantID:  "test-id",
 			wantLen: 1,
 		},
 		{
@@ -427,7 +304,6 @@ func TestGetAsset(t *testing.T) {
 							Sk: "ASSET#test-id",
 						},
 						FileKey: "assets/test-id/1.jpg",
-						Status:  enums.ImageStatusCompleted,
 						Order:   1,
 					},
 					{
@@ -436,7 +312,6 @@ func TestGetAsset(t *testing.T) {
 							Sk: "ASSET#test-id",
 						},
 						FileKey: "assets/test-id/2.jpg",
-						Status:  enums.ImageStatusUploading,
 						Order:   2,
 					},
 				}
@@ -444,13 +319,19 @@ func TestGetAsset(t *testing.T) {
 				imageRepo.On("FindByAssetID", mock.Anything, "test-id").Return(images, nil)
 			},
 			wantErr: false,
-			wantLen: 1,
+			wantLen: 2,
 		},
 		{
 			name:    "ownership check fails",
 			assetID: "test-id",
 			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository) {
-				assetRepo.On("FindByID", mock.Anything, "test-id").Return(asset, nil)
+				otherUserAsset := &models.AssetEntity{
+					BaseItem: models.BaseItem{
+						Pk: "USER#other-user-id",
+						Sk: "ASSET#test-id",
+					},
+				}
+				assetRepo.On("FindByID", mock.Anything, "test-id").Return(otherUserAsset, nil)
 			},
 			wantErr:  true,
 			wantCode: 403,
@@ -526,7 +407,6 @@ func TestListAssets(t *testing.T) {
 							Sk: "IMAGE#1",
 						},
 						FileKey: "assets/asset-1/1.jpg",
-						Status:  enums.ImageStatusCompleted,
 						Order:   1,
 					},
 				}
@@ -622,7 +502,6 @@ func TestListAssets(t *testing.T) {
 							Sk: "IMAGE#1",
 						},
 						FileKey: "assets/asset-1/1.jpg",
-						Status:  enums.ImageStatusCompleted,
 						Order:   1,
 					},
 					{
@@ -631,7 +510,6 @@ func TestListAssets(t *testing.T) {
 							Sk: "IMAGE#2",
 						},
 						FileKey: "assets/asset-1/2.jpg",
-						Status:  enums.ImageStatusCompleted,
 						Order:   2,
 					},
 				}

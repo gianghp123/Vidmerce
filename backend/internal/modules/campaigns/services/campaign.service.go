@@ -7,7 +7,6 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
 	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
-	"github.com/gianghp123/Vidmerce/backend/internal/database/repositories"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/campaigns/dtos/req"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/campaigns/dtos/res"
 	campaignRepo "github.com/gianghp123/Vidmerce/backend/internal/modules/campaigns/repositories"
@@ -53,8 +52,7 @@ func (s *campaignService) CreateCampaign(ctx context.Context, req req.CreateCamp
 		CreatedAt: utils.Now(),
 	}
 
-	baseRepo := repositories.NewBaseRepository(s.campaignRepo.DBClient())
-	if err := baseRepo.TransactWriteItems(ctx, campaign, job); err != nil {
+	if err := s.campaignRepo.CreateWithJob(ctx, campaign, job); err != nil {
 		log.Error("Failed to create campaign", zap.String("campaignId", campaignID), zap.Error(err))
 		return nil, response.Internal("failed to create campaign: " + err.Error())
 	}
