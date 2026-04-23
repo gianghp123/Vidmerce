@@ -25,8 +25,8 @@ func (m *MockAssetRepository) DBClient() *dynamodb.Client {
 	return args.Get(0).(*dynamodb.Client)
 }
 
-func (m *MockAssetRepository) FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error) {
-	args := m.Called(ctx, limit, lastKey)
+func (m *MockAssetRepository) FindAll(ctx context.Context, userID string, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error) {
+	args := m.Called(ctx, userID, limit, lastKey)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

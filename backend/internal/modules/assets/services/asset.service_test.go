@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/gianghp123/Vidmerce/backend/internal/core"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
 	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
@@ -22,6 +23,13 @@ func setupAssetService(t *testing.T) (*assetService, *repoMocks.MockAssetReposit
 	storageMock := storage.NewMockStorage()
 	svc := NewAssetService(assetRepo, imageRepo, storageMock).(*assetService)
 	return svc, assetRepo, imageRepo, storageMock
+}
+
+func createAuthContext(userID string) context.Context {
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, core.UserIDKey, userID)
+	ctx = context.WithValue(ctx, core.RoleKey, enums.UserRoleUser)
+	return ctx
 }
 
 // ==================== CreateAsset Tests ====================
@@ -150,7 +158,8 @@ func TestCreateAsset(t *testing.T) {
 				tt.setupMock(assetRepo, imageRepo, storageMock)
 			}
 
-			result, appErr := svc.CreateAsset(context.Background(), tt.req)
+			ctx := createAuthContext("test-user-id")
+			result, appErr := svc.CreateAsset(ctx, tt.req)
 
 			if tt.wantErr {
 				assert.Nil(t, result)
@@ -177,8 +186,8 @@ func TestCreateAsset(t *testing.T) {
 func TestConfirmUpload(t *testing.T) {
 	uploadingAsset := &models.AssetEntity{
 		BaseItem: models.BaseItem{
-			Pk: "ASSET#test-asset-id",
-			Sk: "METADATA",
+			Pk: "USER#test-user-id",
+			Sk: "ASSET#test-asset-id",
 		},
 		Name:       "Test Asset",
 		Price:      99.99,
@@ -230,8 +239,8 @@ func TestConfirmUpload(t *testing.T) {
 			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository, _ *storage.MockStorage) {
 				asset := &models.AssetEntity{
 					BaseItem: models.BaseItem{
-						Pk: "ASSET#test-id",
-						Sk: "METADATA",
+						Pk: "USER#test-user-id",
+						Sk: "ASSET#test-id",
 					},
 					Status:     enums.AssetStatusCompleted,
 					ImageCount: 1,
@@ -284,6 +293,15 @@ func TestConfirmUpload(t *testing.T) {
 			wantErr:  true,
 			wantCode: 500,
 		},
+		{
+			name:    "ownership check fails",
+			assetID: "test-asset-id",
+			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository, _ *storage.MockStorage) {
+				assetRepo.On("FindByID", mock.Anything, "test-asset-id").Return(uploadingAsset, nil)
+			},
+			wantErr:  true,
+			wantCode: 403,
+		},
 	}
 
 	for _, tt := range tests {
@@ -291,7 +309,8 @@ func TestConfirmUpload(t *testing.T) {
 			svc, assetRepo, imageRepo, storageMock := setupAssetService(t)
 			tt.setupMock(assetRepo, imageRepo, storageMock)
 
-			result, appErr := svc.ConfirmUpload(context.Background(), tt.assetID)
+			ctx := createAuthContext("test-user-id")
+			result, appErr := svc.ConfirmUpload(ctx, tt.assetID)
 
 			if tt.wantErr {
 				assert.Nil(t, result)
@@ -314,8 +333,8 @@ func TestConfirmUpload(t *testing.T) {
 func TestGetAsset(t *testing.T) {
 	asset := &models.AssetEntity{
 		BaseItem: models.BaseItem{
-			Pk: "ASSET#test-id",
-			Sk: "METADATA",
+			Pk: "USER#test-user-id",
+			Sk: "ASSET#test-id",
 		},
 		Name:       "Test Asset",
 		Price:      99.99,
@@ -327,6 +346,7 @@ func TestGetAsset(t *testing.T) {
 
 	tests := []struct {
 		name      string
+		userID    string
 		assetID   string
 		setupMock func(*repoMocks.MockAssetRepository, *repoMocks.MockImageRepository)
 		wantErr   bool
@@ -390,8 +410,8 @@ func TestGetAsset(t *testing.T) {
 			setupMock: func(assetRepo *repoMocks.MockAssetRepository, imageRepo *repoMocks.MockImageRepository) {
 				asset := &models.AssetEntity{
 					BaseItem: models.BaseItem{
-						Pk: "ASSET#test-id",
-						Sk: "METADATA",
+						Pk: "USER#test-user-id",
+						Sk: "ASSET#test-id",
 					},
 					Name:       "Test Asset",
 					Price:      99.99,
@@ -403,8 +423,8 @@ func TestGetAsset(t *testing.T) {
 				images := []models.ImageEntity{
 					{
 						BaseItem: models.BaseItem{
-							Pk: "ASSET#test-id",
-							Sk: "IMAGE#1",
+							Pk: "USER#test-user-id",
+							Sk: "ASSET#test-id",
 						},
 						FileKey: "assets/test-id/1.jpg",
 						Status:  enums.ImageStatusCompleted,
@@ -412,8 +432,8 @@ func TestGetAsset(t *testing.T) {
 					},
 					{
 						BaseItem: models.BaseItem{
-							Pk: "ASSET#test-id",
-							Sk: "IMAGE#2",
+							Pk: "USER#test-user-id",
+							Sk: "ASSET#test-id",
 						},
 						FileKey: "assets/test-id/2.jpg",
 						Status:  enums.ImageStatusUploading,
@@ -426,6 +446,15 @@ func TestGetAsset(t *testing.T) {
 			wantErr: false,
 			wantLen: 1,
 		},
+		{
+			name:    "ownership check fails",
+			assetID: "test-id",
+			setupMock: func(assetRepo *repoMocks.MockAssetRepository, _ *repoMocks.MockImageRepository) {
+				assetRepo.On("FindByID", mock.Anything, "test-id").Return(asset, nil)
+			},
+			wantErr:  true,
+			wantCode: 403,
+		},
 	}
 
 	for _, tt := range tests {
@@ -433,7 +462,8 @@ func TestGetAsset(t *testing.T) {
 			svc, assetRepo, imageRepo, _ := setupAssetService(t)
 			tt.setupMock(assetRepo, imageRepo)
 
-			result, appErr := svc.GetAsset(context.Background(), tt.assetID)
+			ctx := createAuthContext("test-user-id")
+			result, appErr := svc.GetAsset(ctx, tt.assetID)
 
 			if tt.wantErr {
 				assert.Nil(t, result)
@@ -635,7 +665,8 @@ func TestListAssets(t *testing.T) {
 			svc, assetRepo, imageRepo, _ := setupAssetService(t)
 			tt.setupMock(assetRepo, imageRepo)
 
-			result, appErr := svc.ListAssets(context.Background(), tt.limit, tt.cursor)
+			ctx := createAuthContext("test-user-id")
+			result, appErr := svc.ListAssets(ctx, tt.limit, tt.cursor)
 
 			if tt.wantErr {
 				assert.Nil(t, result)

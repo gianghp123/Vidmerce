@@ -7,6 +7,7 @@ import (
 	"github.com/clerk/clerk-sdk-go/v2"
 	clerkhttp "github.com/clerk/clerk-sdk-go/v2/http"
 	"github.com/gianghp123/Vidmerce/backend/internal/configs"
+	"github.com/gianghp123/Vidmerce/backend/internal/core"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
 	"github.com/gin-gonic/gin"
@@ -43,13 +44,21 @@ func ClerkAuth() gin.HandlerFunc {
 				return
 			}
 
-			// Type assert to your custom metadata
-			customClaims, ok := claims.Custom.(*ClerkMetadata)
-			if ok {
-				c.Set("role", customClaims.Role)
+			userID := claims.Subject
+			role := enums.UserRoleUser // Default
+
+			if customClaims, ok := claims.Custom.(*ClerkMetadata); ok && customClaims.Role != "" {
+				role = customClaims.Role
 			}
 
-			c.Set("user_id", claims.Subject)
+			c.Set(core.UserIDKey, userID)
+			c.Set(core.RoleKey, role)
+
+			ctx := context.WithValue(r.Context(), core.UserIDKey, userID)
+			ctx = context.WithValue(ctx, core.RoleKey, role)
+
+			// Replace the request context with our new one
+			c.Request = c.Request.WithContext(ctx)
 			c.Next()
 		}))
 

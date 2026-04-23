@@ -4,10 +4,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gianghp123/Vidmerce/backend/internal/configs"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets/dtos/req"
 	_ "github.com/gianghp123/Vidmerce/backend/internal/modules/assets/dtos/res"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets/services"
+	"github.com/gianghp123/Vidmerce/backend/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,6 +34,7 @@ func NewAssetController(svc services.AssetService) *AssetController {
 // @Failure      500   {object}  response.BaseResponse[any]
 // @Router       /assets [post]
 func (ctrl *AssetController) CreateAsset(c *gin.Context) {
+	utils.LogRequestHeaders(c, configs.GetLogger())
 	var body req.CreateAssetReq
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest(err.Error())))
@@ -50,7 +53,7 @@ func (ctrl *AssetController) CreateAsset(c *gin.Context) {
 // ConfirmUpload godoc
 // @Summary      Confirm asset upload
 // @Description  Confirm upload for an asset and generate image URLs
-// @Security ApiKeyAuth
+// @Security Bearer
 // @Tags         assets
 // @Accept       json
 // @Produce      json
@@ -61,6 +64,7 @@ func (ctrl *AssetController) CreateAsset(c *gin.Context) {
 // @Failure      500  {object}  response.BaseResponse[any]
 // @Router       /assets/{id}/confirm [post]
 func (ctrl *AssetController) ConfirmUpload(c *gin.Context) {
+	utils.LogRequestHeaders(c, configs.GetLogger())
 	assetID := c.Param("id")
 	if assetID == "" {
 		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest("asset ID is required")))
@@ -90,6 +94,7 @@ func (ctrl *AssetController) ConfirmUpload(c *gin.Context) {
 // @Failure      500    {object}  response.BaseResponse[any]
 // @Router       /assets [get]
 func (ctrl *AssetController) ListAssets(c *gin.Context) {
+	utils.LogRequestHeaders(c, configs.GetLogger())
 	limitStr := c.DefaultQuery("limit", "20")
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit <= 0 {
@@ -109,6 +114,7 @@ func (ctrl *AssetController) ListAssets(c *gin.Context) {
 // GetAsset godoc
 // @Summary      Get asset by ID
 // @Description  Retrieve detailed information about a specific asset
+// @Security Bearer
 // @Tags         assets
 // @Accept       json
 // @Produce      json
@@ -119,6 +125,7 @@ func (ctrl *AssetController) ListAssets(c *gin.Context) {
 // @Failure      500  {object}  response.BaseResponse[any]
 // @Router       /assets/{id} [get]
 func (ctrl *AssetController) GetAsset(c *gin.Context) {
+	utils.LogRequestHeaders(c, configs.GetLogger())
 	assetID := c.Param("id")
 	if assetID == "" {
 		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest("asset ID is required")))
@@ -137,6 +144,7 @@ func (ctrl *AssetController) GetAsset(c *gin.Context) {
 // GetImageUploadUrl godoc
 // @Summary      Get image upload URL
 // @Description  Generate a presigned URL for uploading an image to an asset
+// @Security Bearer
 // @Tags         assets
 // @Accept       json
 // @Produce      json
@@ -148,6 +156,7 @@ func (ctrl *AssetController) GetAsset(c *gin.Context) {
 // @Failure      500  {object}  response.BaseResponse[any]
 // @Router       /assets/{id}/images/upload-url [get]
 func (ctrl *AssetController) GetImageUploadUrl(c *gin.Context) {
+	utils.LogRequestHeaders(c, configs.GetLogger())
 	assetID := c.Param("id")
 	if assetID == "" {
 		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest("asset ID is required")))
@@ -172,6 +181,7 @@ func (ctrl *AssetController) GetImageUploadUrl(c *gin.Context) {
 // DeleteAssetImage godoc
 // @Summary      Delete asset image
 // @Description  Delete an image from an asset
+// @Security Bearer
 // @Tags         assets
 // @Accept       json
 // @Produce      json
@@ -183,6 +193,7 @@ func (ctrl *AssetController) GetImageUploadUrl(c *gin.Context) {
 // @Failure      500  {object}  response.BaseResponse[any]
 // @Router       /assets/{id}/images/{imageId} [delete]
 func (ctrl *AssetController) DeleteAssetImage(c *gin.Context) {
+	utils.LogRequestHeaders(c, configs.GetLogger())
 	assetID := c.Param("id")
 	imageID := c.Param("imageId")
 
@@ -207,6 +218,7 @@ func (ctrl *AssetController) DeleteAssetImage(c *gin.Context) {
 // ImportAsset godoc
 // @Summary      Import asset from product URL
 // @Description  Create an asset with IMPORTING status and a SCRAPE_PRODUCT job
+// @Security Bearer
 // @Tags         assets
 // @Accept       json
 // @Produce      json
@@ -216,6 +228,7 @@ func (ctrl *AssetController) DeleteAssetImage(c *gin.Context) {
 // @Failure      500   {object}  response.BaseResponse[any]
 // @Router       /assets/import [post]
 func (ctrl *AssetController) ImportAsset(c *gin.Context) {
+	utils.LogRequestHeaders(c, configs.GetLogger())
 	var body req.ImportAssetReq
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, response.Fail(response.BadRequest(err.Error())))

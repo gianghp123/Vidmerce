@@ -22,7 +22,7 @@ const MaxImagesPerAsset = 5
 var ErrMaxImagesReached = errors.New("maximum images per asset reached")
 
 type AssetRepository interface {
-	FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error)
+	FindAll(ctx context.Context, userID string, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error)
 	FindByID(ctx context.Context, id string) (*models.AssetEntity, error)
 	Create(ctx context.Context, asset models.AssetEntity) error
 	UpdateAssetStatus(ctx context.Context, id string, status string) error
@@ -43,27 +43,48 @@ func (r *assetRepository) DBClient() *dynamodb.Client {
 	return r.dbClient
 }
 
-func (r *assetRepository) FindAll(ctx context.Context, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error) {
+func (r *assetRepository) FindAll(ctx context.Context, userID string, limit int, lastKey string) (*response.PaginatedResult[models.AssetEntity], error) {
 	exclusiveStartKey, err := core.DecodeCursor(lastKey)
 	if err != nil {
 		return nil, err
 	}
 
-	keyCond := expression.Key("Gsi1Pk").Equal(expression.Value("ENTITY#ASSET"))
-	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
-	if err != nil {
-		return nil, err
+	var input *dynamodb.QueryInput
+
+	if userID != "" {
+		pkValue := string(core.PkPrefixUser) + core.KeySeparator + userID
+		keyCond := expression.Key("Pk").Equal(expression.Value(pkValue))
+		expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+		if err != nil {
+			return nil, err
+		}
+
+		input = &dynamodb.QueryInput{
+			TableName:                 aws.String(core.TableName),
+			KeyConditionExpression:    expr.KeyCondition(),
+			ExpressionAttributeNames:  expr.Names(),
+			ExpressionAttributeValues: expr.Values(),
+			Limit:                     aws.Int32(int32(limit)),
+			ScanIndexForward:          aws.Bool(true),
+		}
+	} else {
+		keyCond := expression.Key("Gsi1Pk").Equal(expression.Value(string(core.Gsi1PkEntityAsset)))
+		expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+		if err != nil {
+			return nil, err
+		}
+
+		input = &dynamodb.QueryInput{
+			TableName:                 aws.String(core.TableName),
+			IndexName:                 aws.String("GSI1"),
+			KeyConditionExpression:    expr.KeyCondition(),
+			ExpressionAttributeNames:  expr.Names(),
+			ExpressionAttributeValues: expr.Values(),
+			Limit:                     aws.Int32(int32(limit)),
+			ScanIndexForward:          aws.Bool(false),
+		}
 	}
 
-	input := &dynamodb.QueryInput{
-		TableName:                 aws.String(core.TableName),
-		IndexName:                 aws.String("GSI1"),
-		KeyConditionExpression:    expr.KeyCondition(),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		Limit:                     aws.Int32(int32(limit)),
-		ScanIndexForward:          aws.Bool(false),
-	}
 	if exclusiveStartKey != nil {
 		input.ExclusiveStartKey = exclusiveStartKey
 	}
@@ -78,9 +99,8 @@ func (r *assetRepository) FindAll(ctx context.Context, limit int, lastKey string
 		return nil, err
 	}
 
-	// Strip "ASSET#" prefix from Pk for each item
 	for i := range items {
-		items[i].Pk = strings.TrimPrefix(items[i].Pk, "ASSET#")
+		items[i].Pk = strings.TrimPrefix(items[i].Pk, string(core.SkPrefixAsset)+core.KeySeparator)
 	}
 
 	nextCursor, err := core.EncodeCursor(resp.LastEvaluatedKey)
@@ -96,32 +116,38 @@ func (r *assetRepository) FindAll(ctx context.Context, limit int, lastKey string
 }
 
 func (r *assetRepository) FindByID(ctx context.Context, id string) (*models.AssetEntity, error) {
-	key, err := attributevalue.MarshalMap(map[string]string{
-		"Pk": "ASSET#" + id,
-		"Sk": "METADATA",
-	})
+	keyCond := expression.Key("Gsi1Pk").Equal(expression.Value(string(core.Gsi1PkEntityAsset)))
+	keyCond = keyCond.And(expression.Key("Gsi1Sk").Equal(expression.Value(id)))
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := r.dbClient.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: aws.String(core.TableName),
-		Key:       key,
-	})
+	input := &dynamodb.QueryInput{
+		TableName:                 aws.String(core.TableName),
+		IndexName:                 aws.String("GSI1"),
+		KeyConditionExpression:    expr.KeyCondition(),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		Limit:                     aws.Int32(1),
+	}
+
+	resp, err := r.dbClient.Query(ctx, input)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.Item == nil {
+	if len(resp.Items) == 0 {
 		return nil, nil
 	}
 
 	var item models.AssetEntity
-	if err := attributevalue.UnmarshalMap(resp.Item, &item); err != nil {
+	if err := attributevalue.UnmarshalMap(resp.Items[0], &item); err != nil {
 		return nil, err
 	}
-	// Strip "ASSET#" prefix from Pk to return raw asset ID
-	item.Pk = strings.TrimPrefix(item.Pk, "ASSET#")
+
+	item.Pk = strings.TrimPrefix(item.Pk, string(core.SkPrefixAsset)+core.KeySeparator)
 	return &item, nil
 }
 
@@ -149,9 +175,9 @@ func (r *assetRepository) Create(ctx context.Context, asset models.AssetEntity) 
 }
 
 func (r *assetRepository) UpdateAssetStatus(ctx context.Context, id string, status string) error {
-	key, err := attributevalue.MarshalMap(map[string]string{
-		"Pk": "ASSET#" + id,
-		"Sk": "METADATA",
+	item, err := attributevalue.MarshalMap(models.BaseItem{
+		Pk: string(core.PkPrefixAsset) + core.KeySeparator + id,
+		Sk: string(core.SkPrefixAsset) + core.KeySeparator + id,
 	})
 	if err != nil {
 		return err
@@ -159,7 +185,7 @@ func (r *assetRepository) UpdateAssetStatus(ctx context.Context, id string, stat
 
 	_, err = r.dbClient.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName:        aws.String(core.TableName),
-		Key:              key,
+		Key:              item,
 		UpdateExpression: aws.String("SET #status = :status"),
 		ExpressionAttributeNames: map[string]string{
 			"#status": "status",
@@ -172,9 +198,9 @@ func (r *assetRepository) UpdateAssetStatus(ctx context.Context, id string, stat
 }
 
 func (r *assetRepository) IncrementImageCount(ctx context.Context, id string) (int, error) {
-	key, err := attributevalue.MarshalMap(map[string]string{
-		"Pk": "ASSET#" + id,
-		"Sk": "METADATA",
+	item, err := attributevalue.MarshalMap(models.BaseItem{
+		Pk: string(core.PkPrefixAsset) + core.KeySeparator + id,
+		Sk: string(core.SkPrefixAsset) + core.KeySeparator + id,
 	})
 	if err != nil {
 		return 0, err
@@ -184,7 +210,7 @@ func (r *assetRepository) IncrementImageCount(ctx context.Context, id string) (i
 
 	resp, err := r.dbClient.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName:           aws.String(core.TableName),
-		Key:                 key,
+		Key:                 item,
 		UpdateExpression:    aws.String("SET #c = #c + :inc"),
 		ConditionExpression: aws.String("#c < :max"),
 		ExpressionAttributeNames: map[string]string{

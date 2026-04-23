@@ -16,6 +16,7 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets/dtos/req"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/assets/dtos/res"
 	imageRepo "github.com/gianghp123/Vidmerce/backend/internal/modules/assets/repositories"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/auth/guards"
 	"github.com/gianghp123/Vidmerce/backend/internal/storage"
 	"github.com/gianghp123/Vidmerce/backend/internal/utils"
 	"github.com/google/uuid"
@@ -45,6 +46,11 @@ func NewAssetService(assetRepo imageRepo.AssetRepository, imageRepo imageRepo.Im
 func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) (*res.CreateAssetRes, *response.AppError) {
 	log := configs.GetLogger()
 
+	auth, err := guards.FromAuthContext(ctx)
+	if err != nil {
+		return nil, response.Unauthorized("authentication required")
+	}
+
 	imageCount := req.ImageCount
 	if imageCount <= 0 {
 		imageCount = 1
@@ -56,7 +62,7 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 	assetID := uuid.New().String()
 
 	asset := models.AssetEntity{
-		BaseItem:   utils.BuildAssetBaseItem(assetID),
+		BaseItem:   utils.BuildUserAssetBaseItem(auth.UserID, assetID),
 		Name:       req.Name,
 		Price:      req.Price,
 		ProductURL: req.ProductURL,
@@ -108,7 +114,7 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 		return nil, response.Internal("failed to create asset and images: " + err.Error())
 	}
 
-	log.Debug("Asset created", zap.String("assetId", assetID), zap.Int("imageCount", imageCount))
+	log.Debug("Asset created", zap.String("assetId", assetID), zap.Int("imageCount", imageCount), zap.String("userId", auth.UserID))
 	return &res.CreateAssetRes{
 		AssetID: assetID,
 		Status:  string(enums.AssetStatusUploading),
@@ -209,6 +215,10 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 		return nil, response.NotFound("asset not found")
 	}
 
+	if appErr := guards.GuardOwn(ctx, utils.GetOwnerIDFromPK(asset.Pk)); appErr != nil {
+		return nil, appErr
+	}
+
 	images, err := s.imageRepo.FindByAssetID(ctx, assetID)
 	if err != nil {
 		log.Error("Failed to find images", zap.String("assetId", assetID), zap.Error(err))
@@ -242,11 +252,21 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetRes], *response.AppError) {
 	log := configs.GetLogger()
 
+	auth, err := guards.FromAuthContext(ctx)
+	if err != nil {
+		return nil, response.Unauthorized("authentication required")
+	}
+
 	if limit <= 0 {
 		limit = 20
 	}
 
-	result, err := s.assetRepo.FindAll(ctx, limit, cursor)
+	userID := ""
+	if auth != nil && auth.Role != enums.UserRoleAdmin {
+		userID = auth.UserID
+	}
+
+	result, err := s.assetRepo.FindAll(ctx, userID, limit, cursor)
 	if err != nil {
 		log.Error("Failed to fetch assets", zap.Error(err))
 		return nil, response.Internal("failed to fetch assets: " + err.Error())
@@ -281,7 +301,7 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 		})
 	}
 
-	log.Debug("Assets listed", zap.Int("count", len(assets)), zap.Bool("hasMore", result.Meta.HasMore))
+	log.Debug("Assets listed", zap.String("userId", auth.UserID), zap.Int("count", len(assets)), zap.Bool("hasMore", result.Meta.HasMore))
 	return &response.PaginatedResult[res.AssetRes]{
 		Data: assets,
 		Meta: result.Meta,
@@ -298,6 +318,10 @@ func (s *assetService) GetImageUploadUrl(ctx context.Context, assetID string, fi
 	}
 	if asset == nil {
 		return nil, response.NotFound("asset not found")
+	}
+
+	if appErr := guards.GuardOwn(ctx, utils.GetOwnerIDFromPK(asset.Pk)); appErr != nil {
+		return nil, appErr
 	}
 
 	images, err := s.imageRepo.FindByAssetID(ctx, assetID)
@@ -380,6 +404,10 @@ func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, ima
 		return response.NotFound("asset not found")
 	}
 
+	if appErr := guards.GuardOwn(ctx, utils.GetOwnerIDFromPK(asset.Pk)); appErr != nil {
+		return appErr
+	}
+
 	images, err := s.imageRepo.FindByAssetID(ctx, assetID)
 	if err != nil {
 		log.Error("Failed to find images", zap.String("assetId", assetID), zap.Error(err))
@@ -415,13 +443,18 @@ func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, ima
 func (s *assetService) ImportAsset(ctx context.Context, req req.ImportAssetReq) (*res.ImportAssetRes, *response.AppError) {
 	log := configs.GetLogger()
 
+	auth, err := guards.FromAuthContext(ctx)
+	if err != nil {
+		return nil, response.Unauthorized("authentication required")
+	}
+
 	assetID := uuid.New().String()
 	jobID := uuid.New().String()
 
 	log.Debug("Importing asset", zap.String("assetId", assetID), zap.String("jobId", jobID), zap.String("productUrl", req.ProductURL))
 
 	asset := models.AssetEntity{
-		BaseItem:   utils.BuildAssetBaseItem(assetID),
+		BaseItem:   utils.BuildUserAssetBaseItem(auth.UserID, assetID),
 		ProductURL: req.ProductURL,
 		Status:     enums.AssetStatusImporting,
 		CreatedAt:  utils.Now(),
@@ -442,7 +475,7 @@ func (s *assetService) ImportAsset(ctx context.Context, req req.ImportAssetReq) 
 		return nil, response.Internal("failed to create import job: " + err.Error())
 	}
 
-	log.Info("Asset import started", zap.String("assetId", assetID), zap.String("jobId", jobID))
+	log.Info("Asset import started", zap.String("assetId", assetID), zap.String("jobId", jobID), zap.String("userId", auth.UserID))
 	return &res.ImportAssetRes{
 		AssetID: assetID,
 		JobID:   jobID,

@@ -7,6 +7,7 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
 	"github.com/gianghp123/Vidmerce/backend/internal/database/models"
+	"github.com/gianghp123/Vidmerce/backend/internal/modules/auth/guards"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/users/dtos/req"
 	"github.com/gianghp123/Vidmerce/backend/internal/modules/users/dtos/res"
 	userRepo "github.com/gianghp123/Vidmerce/backend/internal/modules/users/repositories"
@@ -59,6 +60,10 @@ func (s *userService) CreateUser(ctx context.Context, req req.CreateUserReq) (*r
 func (s *userService) GetUser(ctx context.Context, id string) (*res.UserRes, *response.AppError) {
 	log := configs.GetLogger()
 
+	if appErr := guards.GuardOwn(ctx, id); appErr != nil {
+		return nil, appErr
+	}
+
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		log.Error("Failed to find user", zap.String("userId", id), zap.Error(err))
@@ -73,6 +78,16 @@ func (s *userService) GetUser(ctx context.Context, id string) (*res.UserRes, *re
 
 func (s *userService) ListUsers(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.UserRes], *response.AppError) {
 	log := configs.GetLogger()
+
+	auth, err := guards.FromAuthContext(ctx)
+	if err != nil {
+		return nil, response.Unauthorized("authentication required")
+	}
+
+	// Only admins can list users
+	if auth.Role != enums.UserRoleAdmin {
+		return nil, response.Forbidden("admin access required")
+	}
 
 	if limit <= 0 {
 		limit = 20
@@ -99,6 +114,10 @@ func (s *userService) ListUsers(ctx context.Context, limit int, cursor string) (
 func (s *userService) UpdateUser(ctx context.Context, id string, req req.UpdateUserReq) (*res.UserRes, *response.AppError) {
 	log := configs.GetLogger()
 
+	if appErr := guards.GuardOwn(ctx, id); appErr != nil {
+		return nil, appErr
+	}
+
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		log.Error("Failed to find user", zap.String("userId", id), zap.Error(err))
@@ -123,6 +142,10 @@ func (s *userService) UpdateUser(ctx context.Context, id string, req req.UpdateU
 
 func (s *userService) DeleteUser(ctx context.Context, id string) *response.AppError {
 	log := configs.GetLogger()
+
+	if appErr := guards.GuardOwn(ctx, id); appErr != nil {
+		return appErr
+	}
 
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
