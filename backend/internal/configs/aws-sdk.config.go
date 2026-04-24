@@ -8,6 +8,7 @@ import (
 type AWSConfig struct {
 	IsLocal  bool
 	Endpoint *string
+	Region   string
 }
 
 func LoadAWSConfig() *AWSConfig {
@@ -25,9 +26,14 @@ func LoadAWSConfig() *AWSConfig {
 	if endpoint != "" {
 		endpointPtr = &endpoint
 	}
+	region := os.Getenv("AWS_REGION")
+	if region == "" {
+		region = "ap-southeast-1"
+	}
 
 	return &AWSConfig{
 		IsLocal:  isLocal,
 		Endpoint: endpointPtr,
+		Region:   region,
 	}
 }

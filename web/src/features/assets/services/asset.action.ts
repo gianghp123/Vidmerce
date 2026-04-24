@@ -10,6 +10,7 @@ export async function createAssetGetUploadUrl(
   payload: { imageCount: number }
 ): Promise<BaseResponse<CreateAssetRes>> {
   return apiFetch<CreateAssetRes>("/assets", {
+    withCredentials: true,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -40,6 +41,7 @@ export async function confirmAssetUpload(
   body: ConfirmUploadDto
 ): Promise<BaseResponse<IAsset>> {
   return apiFetch<IAsset>(`/assets/${assetId}/confirm`, {
+    withCredentials: true,
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -51,6 +53,7 @@ export async function deleteAssetImage(
   imageId: string
 ): Promise<BaseResponse<void>> {
   return apiFetch<void>(`/assets/${assetId}/images/${imageId}`, {
+    withCredentials: true,
     method: "DELETE",
   });
 }

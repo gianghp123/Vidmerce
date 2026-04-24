@@ -1,5 +1,6 @@
 'server-only'
-import type { BaseResponse } from "./base.model";
+import type { BaseResponse } from "@/types/base.model";
+import { auth } from "@clerk/nextjs/server";
 import { snakeToCamel } from "./case";
 
 type ApiFetchOptions = {
@@ -16,14 +17,14 @@ export async function apiFetch<T = any>(
   try {
     const {
       withCredentials = false,
-      baseUrl =  process.env.API_URL,
+      baseUrl = process.env.API_URL,
       query,
       ...fetchOptions
     } = options || {};
 
     if (!baseUrl) {
       throw new Error(
-        "Server VITE_API_URL is not configured. Please set VITE_API_URL environment variable."
+        "Server API_URL is not configured. Please set API_URL environment variable."
       );
     }
 
@@ -32,38 +33,31 @@ export async function apiFetch<T = any>(
       apikey: process.env.API_KEY || "",
     };
 
-    // if (withCredentials) {
-    //   const clerk = (window as any).Clerk;
-    //   if (clerk?.session) {
-    //       const token = await clerk.session.getToken();
-    //       if (token) headers["Authorization"] = `Bearer ${token}`;
-    //   } else {
-    //     throw new Error("Clerk is not initialized");
-    //   }
-    // }
-
-    let queryString = "";
-    if (query && Object.keys(query).length > 0) {
-      const searchParams = new URLSearchParams();
-      Object.entries(query).forEach(([key, value]) => {
-        if (
-          value !== undefined &&
-          value !== null &&
-          value !== "" &&
-          (Array.isArray(value) ? value.length > 0 : true)
-        ) {
-          if (Array.isArray(value)) {
-            value.forEach((v) => searchParams.append(key, String(v)));
-          } else {
-            searchParams.append(key, String(value));
-          }
-        }
-      });
-
-      queryString = `?${searchParams.toString()}`;
+    if (withCredentials) {
+      const { getToken } = await auth();
+      const token = await getToken();
+      if (token) headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const fullUrl = `${baseUrl}${url}${queryString}`;
+    const searchParams = new URLSearchParams();
+    if (query) {
+      Object.entries(query).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === "") return;
+
+        if (typeof value === "object") {
+          // If it's a DynamoDB object, we MUST stringify it properly
+          searchParams.append(key, JSON.stringify(value));
+        } else {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+
+    const fullUrl = `${baseUrl}${url}${queryString ? `?${queryString}` : ""}`;
+
+    console.log("🚀 Calling API:", fullUrl);
 
     const response = await fetch(fullUrl, {
       method: fetchOptions.method || "GET",

@@ -3,10 +3,8 @@ import type { BaseResponse } from "@/types/base.model";
 import { apiFetch } from "@/lib/api-fetch";
 
 export interface FetchAssetsParams {
-  cursor?: string | null;
+  lastKey?: string;
   limit?: number;
-  status?: string;
-  search?: string;
 }
 
 export async function fetchAssets(

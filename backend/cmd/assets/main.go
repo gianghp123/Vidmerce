@@ -101,7 +101,7 @@ func main() {
 
 	if awsCfg.IsLocal {
 		log.Printf("Running in LOCAL SERVER mode on http://localhost:3000")
-		if err := router.Run(":3000"); err != nil {
+		if err := router.Run(":8000"); err != nil {
 			log.Fatalf("Failed to run local server: %v", err)
 		}
 	} else {

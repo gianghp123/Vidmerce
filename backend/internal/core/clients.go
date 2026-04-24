@@ -17,7 +17,7 @@ type Clients struct {
 }
 
 func NewClients(ctx context.Context, cfg *configs.AWSConfig, s3Bucket string) (*Clients, error) {
-	sdkConfig, err := config.LoadDefaultConfig(ctx)
+	sdkConfig, err := config.LoadDefaultConfig(ctx, config.WithRegion(cfg.Region))
 	if err != nil {
 		return nil, err
 	}

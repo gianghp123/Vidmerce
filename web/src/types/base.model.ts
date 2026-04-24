@@ -6,10 +6,9 @@ export interface ApiError {
 export interface BaseResponse<T> {
   data: T | null;
   error: ApiError | null;
-  meta?: Record<string, unknown>;
-}
-
-export interface CursorResponse<T> {
-  data: T[];
-  cursor?: string;
+  meta?: {
+    limit: number,
+    lastKey: string,
+    hasMore: boolean
+  };
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 	"github.com/gianghp123/Vidmerce/backend/internal/core/response"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type ClerkMetadata struct {
@@ -27,6 +28,7 @@ func withCustomClaims(params *clerkhttp.AuthorizationParams) error {
 }
 
 func ClerkAuth() gin.HandlerFunc {
+	logger := configs.GetLogger()
 	clerkCfg := configs.GetClerkConfig()
 	clerk.SetKey(clerkCfg.ClerkSecret)
 
@@ -40,6 +42,18 @@ func ClerkAuth() gin.HandlerFunc {
 		handler := clerkhttp.WithHeaderAuthorization(withCustomClaims)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			claims, ok := clerk.SessionClaimsFromContext(r.Context())
 			if !ok {
+				authHeader := r.Header.Get("Authorization")
+				reason := "missing or invalid clerk session"
+				if authHeader == "" {
+					reason = "missing clerk authorization header"
+				}
+
+				logger.Warn("Unauthorized request",
+					zap.String("path", r.URL.Path),
+					zap.String("method", r.Method),
+					zap.String("ip", c.ClientIP()),
+					zap.String("reason", reason),
+				)
 				c.AbortWithStatusJSON(http.StatusUnauthorized, response.Unauthorized())
 				return
 			}
