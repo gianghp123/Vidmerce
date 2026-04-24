@@ -13,7 +13,7 @@
           "description": "S3 file key"
         }
       },
-      "required": ["fileKey", "status", "order"]
+      "required": ["fileKey"]
     }
   ]
 }

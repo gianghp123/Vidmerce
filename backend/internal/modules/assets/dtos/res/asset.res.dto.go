@@ -17,11 +17,6 @@ type PresignedUrlsRes struct {
 	Uploads []UploadInfo `json:"uploads"`
 }
 
-type ConfirmAssetRes struct {
-	AssetID string      `json:"assetId"`
-	Images  []ImageInfo `json:"images"`
-}
-
 type AssetRes struct {
 	AssetID    string      `json:"assetId"`
 	Name       string      `json:"name"`

@@ -22,7 +22,7 @@ import (
 
 type AssetService interface {
 	CreateAsset(ctx context.Context, req req.CreateAssetReq) (*res.PresignedUrlsRes, *response.AppError)
-	ConfirmUpload(ctx context.Context, assetID string, req req.ConfirmUploadReq) (*res.ConfirmAssetRes, *response.AppError)
+	ConfirmUpload(ctx context.Context, assetID string, req req.ConfirmUploadReq) (*res.AssetRes, *response.AppError)
 	GetAsset(ctx context.Context, assetID string) (*res.AssetRes, *response.AppError)
 	ListAssets(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.AssetRes], *response.AppError)
 	DeleteAssetImage(ctx context.Context, assetID string, imageID string) *response.AppError
@@ -174,7 +174,7 @@ func (s *assetService) CreateAsset(ctx context.Context, req req.CreateAssetReq) 
 	}, nil
 }
 
-func (s *assetService) ConfirmUpload(ctx context.Context, assetID string, req req.ConfirmUploadReq) (*res.ConfirmAssetRes, *response.AppError) {
+func (s *assetService) ConfirmUpload(ctx context.Context, assetID string, req req.ConfirmUploadReq) (*res.AssetRes, *response.AppError) {
 	log := configs.GetLogger()
 	auth, err := guards.FromAuthContext(ctx)
 	if err != nil {
@@ -211,7 +211,6 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string, req re
 				Sk: fmt.Sprintf("%s#%d", core.EntityTypeImage, i+1),
 			},
 			FileKey: fileKey,
-			Order:   i + 1,
 		}
 	}
 
@@ -230,10 +229,16 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string, req re
 		}
 	}
 
-	return &res.ConfirmAssetRes{
-		AssetID: assetID,
-		Images:  imageInfos,
-	}, nil
+	var result res.AssetRes
+
+	err = utils.MapToDTO(asset, result)
+	if err != nil {
+		log.Error("Failed to map asset to DTO", zap.Error(err))
+		return nil, response.Internal("failed to map asset to DTO")
+	}
+
+	result.Images = imageInfos
+	return &result, nil
 }
 
 func (s *assetService) DeleteAssetImage(ctx context.Context, assetID string, imageID string) *response.AppError {

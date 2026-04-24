@@ -4,8 +4,9 @@ import "github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 
 type UserEntity struct {
 	BaseItem
-	CreatedAt string         `dynamodbav:"createdAt"`
-	UpdatedAt string         `dynamodbav:"updatedAt,omitempty"`
-	Email     string         `dynamodbav:"email"`
-	Role      enums.UserRole `dynamodbav:"role"`
+	// Creation timestamp
+	CreatedAt string `dynamodbav:"createdAt"`
+	// UserEntity email
+	Email string         `dynamodbav:"email"`
+	Role  enums.UserRole `dynamodbav:"role"`
 }

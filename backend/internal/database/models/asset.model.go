@@ -8,6 +8,8 @@ type AssetEntity struct {
 	CreatedAt string `dynamodbav:"createdAt"`
 	// Number of images
 	ImageCount int `dynamodbav:"imageCount"`
+	// Product images
+	Images []ImageEntity `dynamodbav:"images,omitempty"`
 	// Product name
 	Name string `dynamodbav:"name"`
 	// Product price

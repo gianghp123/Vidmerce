@@ -54,7 +54,14 @@ func (s *userService) CreateUser(ctx context.Context, req req.CreateUserReq) (*r
 	}
 
 	log.Info("User created", zap.String("userId", userID), zap.String("email", req.Email))
-	return toUserRes(&user), nil
+	var result res.UserRes
+
+	err := utils.MapToDTO(user, result)
+	if err != nil {
+		log.Error("Failed to map user to DTO", zap.Error(err))
+		return nil, response.Internal("failed to map user to DTO")
+	}
+	return &result, nil
 }
 
 func (s *userService) GetUser(ctx context.Context, id string) (*res.UserRes, *response.AppError) {
@@ -73,7 +80,14 @@ func (s *userService) GetUser(ctx context.Context, id string) (*res.UserRes, *re
 		return nil, response.NotFound("user not found")
 	}
 
-	return toUserRes(user), nil
+	var result res.UserRes
+
+	err = utils.MapToDTO(user, result)
+	if err != nil {
+		log.Error("Failed to map user to DTO", zap.Error(err))
+		return nil, response.Internal("failed to map user to DTO")
+	}
+	return &result, nil
 }
 
 func (s *userService) ListUsers(ctx context.Context, limit int, cursor string) (*response.PaginatedResult[res.UserRes], *response.AppError) {
@@ -99,9 +113,12 @@ func (s *userService) ListUsers(ctx context.Context, limit int, cursor string) (
 		return nil, response.Internal("failed to fetch users: " + err.Error())
 	}
 
-	users := make([]res.UserRes, 0, len(result.Data))
-	for _, item := range result.Data {
-		users = append(users, *toUserRes(&item))
+	var users []res.UserRes
+
+	err = utils.MapToDTO(result.Data, users)
+	if err != nil {
+		log.Error("Failed to map user to DTO", zap.Error(err))
+		return nil, response.Internal("failed to map user to DTO")
 	}
 
 	log.Debug("Users listed", zap.Int("count", len(users)), zap.Bool("hasMore", result.Meta.HasMore))
@@ -137,7 +154,15 @@ func (s *userService) UpdateUser(ctx context.Context, id string, req req.UpdateU
 	}
 
 	log.Info("User updated", zap.String("userId", id))
-	return toUserRes(user), nil
+
+	var result res.UserRes
+
+	err = utils.MapToDTO(user, result)
+	if err != nil {
+		log.Error("Failed to map user to DTO", zap.Error(err))
+		return nil, response.Internal("failed to map user to DTO")
+	}
+	return &result, nil
 }
 
 func (s *userService) DeleteUser(ctx context.Context, id string) *response.AppError {
@@ -163,14 +188,4 @@ func (s *userService) DeleteUser(ctx context.Context, id string) *response.AppEr
 
 	log.Info("User deleted", zap.String("userId", id))
 	return nil
-}
-
-func toUserRes(user *models.UserEntity) *res.UserRes {
-	return &res.UserRes{
-		ID:        user.Pk,
-		Email:     user.Email,
-		Role:      string(user.Role),
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}
 }

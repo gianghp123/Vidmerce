@@ -21,6 +21,13 @@
           "format": "uri",
           "description": "Product URL"
         },
+        "images": {
+          "type": "array",
+          "items": {
+            "$ref": "image.schema.json"
+          },
+          "description": "Product images"
+        },
         "status": {
           "$ref": "enums.schema.json#/definitions/AssetStatus"
         },

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/gianghp123/Vidmerce/backend/internal/core/enums"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -15,9 +16,10 @@ func LogRequestHeaders(c *gin.Context, log *zap.Logger) {
 		fields = append(fields, zap.String("user_id", userID.(string)))
 	}
 	if role, exists := c.Get("role"); exists {
-		fields = append(fields, zap.String("role", role.(string)))
+		if r, ok := role.(enums.UserRole); ok {
+			fields = append(fields, zap.String("role", string(r)))
+		}
 	}
-
 	if requestID := c.GetHeader("X-Request-ID"); requestID != "" {
 		fields = append(fields, zap.String("request_id", requestID))
 	}

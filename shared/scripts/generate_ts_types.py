@@ -72,8 +72,9 @@ def process_and_split(tmp_file, args):
         full_content = f.read()
 
     # 1. DISCOVER ENUMS
+    # Capture the entire body of the enum that quicktype generates instead of stripping it
     enum_matches = list(re.finditer(r'export enum (\w+) \{([^}]+)\}', full_content))
-    discovered_enums = {m.group(1): re.findall(r'"([^"]+)"', m.group(2)) for m in enum_matches}
+    discovered_enums = {m.group(1): m.group(2) for m in enum_matches}
     
     # 2. DISCOVER STRUCTS & BUILD GLOBAL RENAME MAP
     raw_structs = extract_interfaces(full_content)
@@ -93,11 +94,10 @@ def process_and_split(tmp_file, args):
     print(f"🔍 TS Discovered: {len(discovered_enums)} Enums, {len(unique_structs)} Clean Interfaces")
 
     # 3. GENERATE ENUMS
-    for name, values in discovered_enums.items():
+    for name, body in discovered_enums.items():
         filename = f"{camel_to_kebab(name)}.enum.ts"
-        union = "\n".join([f'  | "{v}"' for v in values])
         with open(os.path.join(args.enums_dir, filename), "w") as f:
-            f.write(f"export type {name} =\n{union};\n")
+            f.write(f"export enum {name} {{{body}}}\n")
 
     # 4. GENERATE MODELS
     for clean_name, body in unique_structs.items():
@@ -141,7 +141,8 @@ def process_and_split(tmp_file, args):
         # Build Imports
         imports = []
         for e in sorted(used_enums):
-            imports.append(f'import type {{ {e} }} from "../enums/{camel_to_kebab(e)}.enum";')
+            # Dropped 'type' keyword for enums; real TS enums emit values to JavaScript runtime
+            imports.append(f'import {{ {e} }} from "../enums/{camel_to_kebab(e)}.enum";')
         for m in sorted(used_models):
             # Convert clean name IName back to kebab name for file path
             kebab_m = camel_to_kebab(m[1:] if m.startswith("I") else m)

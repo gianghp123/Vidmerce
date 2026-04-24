@@ -3,7 +3,7 @@ SHELL := /bin/bash
 # --- Configuration ---
 ENV             ?= dev
 BACKEND_DIR     = backend
-FRONTEND_DIR    = frontend
+FRONTEND_DIR    = web
 SHARED_DIR      = shared
 SCHEMAS_DIR     = $(SHARED_DIR)/schemas
 SCRIPTS_DIR     = $(SHARED_DIR)/scripts
@@ -16,8 +16,8 @@ GO_MODELS_OUT   = $(BACKEND_DIR)/internal/database/models
 GO_ENUMS_IMPORT = github.com/gianghp123/Vidmerce/backend/internal/core/enums
 
 # --- TS Type Generation Config ---
-TS_ENUMS_OUT    = $(FRONTEND_DIR)/src/lib/enums
-TS_MODELS_OUT   = $(FRONTEND_DIR)/src/lib/models
+TS_ENUMS_OUT    = $(FRONTEND_DIR)/src/types/enums
+TS_MODELS_OUT   = $(FRONTEND_DIR)/src/types/models
 
 # --- Terraform Settings ---
 TF_CMD          = terraform
