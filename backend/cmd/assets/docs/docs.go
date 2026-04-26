@@ -109,7 +109,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.BaseResponse-res_CreateAssetRes"
+                            "$ref": "#/definitions/response.BaseResponse-res_PresignedUrlsRes"
                         }
                     },
                     "400": {
@@ -129,6 +129,11 @@ const docTemplate = `{
         },
         "/assets/import": {
             "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Create an asset with IMPORTING status and a SCRAPE_PRODUCT job",
                 "consumes": [
                     "application/json"
@@ -175,6 +180,11 @@ const docTemplate = `{
         },
         "/assets/{id}": {
             "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Retrieve detailed information about a specific asset",
                 "consumes": [
                     "application/json"
@@ -227,7 +237,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "Bearer": []
                     }
                 ],
                 "description": "Confirm upload for an asset and generate image URLs",
@@ -248,70 +258,22 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Confirm upload request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/req.ConfirmUploadReq"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.BaseResponse-res_ConfirmAssetRes"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.BaseResponse-any"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.BaseResponse-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.BaseResponse-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/assets/{id}/images/upload-url": {
-            "get": {
-                "description": "Generate a presigned URL for uploading an image to an asset",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "assets"
-                ],
-                "summary": "Get image upload URL",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Asset ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "File name",
-                        "name": "fileName",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.BaseResponse-res_AssetUpload"
+                            "$ref": "#/definitions/response.BaseResponse-res_AssetRes"
                         }
                     },
                     "400": {
@@ -337,6 +299,11 @@ const docTemplate = `{
         },
         "/assets/{id}/images/{imageId}": {
             "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
                 "description": "Delete an image from an asset",
                 "consumes": [
                     "application/json"
@@ -394,12 +361,37 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "req.CreateAssetReq": {
+        "req.ConfirmUploadReq": {
             "type": "object",
             "required": [
+                "fileKeys",
                 "name",
                 "price",
                 "productUrl"
+            ],
+            "properties": {
+                "fileKeys": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "productUrl": {
+                    "type": "string"
+                }
+            }
+        },
+        "req.CreateAssetReq": {
+            "type": "object",
+            "required": [
+                "imageCount"
             ],
             "properties": {
                 "imageCount": {
@@ -407,18 +399,6 @@ const docTemplate = `{
                     "maximum": 5,
                     "minimum": 1,
                     "example": 3
-                },
-                "name": {
-                    "type": "string",
-                    "example": "iPhone 15"
-                },
-                "price": {
-                    "type": "number",
-                    "example": 999.99
-                },
-                "productUrl": {
-                    "type": "string",
-                    "example": "https://example.com/products/iphone-15"
                 }
             }
         },
@@ -463,57 +443,6 @@ const docTemplate = `{
                 }
             }
         },
-        "res.AssetUpload": {
-            "type": "object",
-            "properties": {
-                "expiresIn": {
-                    "type": "integer",
-                    "example": 300
-                },
-                "fileKey": {
-                    "type": "string",
-                    "example": "assets/abc123/1.jpg"
-                },
-                "uploadUrl": {
-                    "type": "string",
-                    "example": "https://s3.amazonaws.com/bucket/asset-url"
-                }
-            }
-        },
-        "res.ConfirmAssetRes": {
-            "type": "object",
-            "properties": {
-                "assetId": {
-                    "type": "string"
-                },
-                "images": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/res.ImageInfo"
-                    }
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "res.CreateAssetRes": {
-            "type": "object",
-            "properties": {
-                "assetId": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "uploads": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/res.UploadInfo"
-                    }
-                }
-            }
-        },
         "res.ImageInfo": {
             "type": "object",
             "properties": {
@@ -521,12 +450,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "imageUrl": {
-                    "type": "string"
-                },
-                "order": {
-                    "type": "integer"
-                },
-                "status": {
                     "type": "string"
                 }
             }
@@ -539,6 +462,20 @@ const docTemplate = `{
                 },
                 "jobId": {
                     "type": "string"
+                }
+            }
+        },
+        "res.PresignedUrlsRes": {
+            "type": "object",
+            "properties": {
+                "assetId": {
+                    "type": "string"
+                },
+                "uploads": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/res.UploadInfo"
+                    }
                 }
             }
         },
@@ -611,62 +548,28 @@ const docTemplate = `{
                 }
             }
         },
-        "response.BaseResponse-res_AssetUpload": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/res.AssetUpload"
-                },
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
-        "response.BaseResponse-res_ConfirmAssetRes": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/res.ConfirmAssetRes"
-                },
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
-        "response.BaseResponse-res_CreateAssetRes": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/res.CreateAssetRes"
-                },
-                "error": {},
-                "meta": {
-                    "description": "optional",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/response.Meta"
-                        }
-                    ]
-                }
-            }
-        },
         "response.BaseResponse-res_ImportAssetRes": {
             "type": "object",
             "properties": {
                 "data": {
                     "$ref": "#/definitions/res.ImportAssetRes"
+                },
+                "error": {},
+                "meta": {
+                    "description": "optional",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Meta"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.BaseResponse-res_PresignedUrlsRes": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/res.PresignedUrlsRes"
                 },
                 "error": {},
                 "meta": {
@@ -717,7 +620,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:3000",
+	Host:             "localhost:8000",
 	BasePath:         "/api",
 	Schemes:          []string{"http"},
 	Title:            "Assets API",

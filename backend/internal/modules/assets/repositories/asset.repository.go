@@ -74,8 +74,9 @@ func (r *assetRepository) FindAll(ctx context.Context, limit int, lastKey string
 		return nil, err
 	}
 
+	// Extract asset ID from Sk (remove ASSET# prefix) for each item, keep Pk for user ID
 	for i := range items {
-		items[i].Pk = strings.TrimPrefix(items[i].Pk, string(core.SkPrefixAsset)+core.KeySeparator)
+		items[i].Sk = strings.TrimPrefix(items[i].Sk, string(core.SkPrefixAsset)+core.KeySeparator)
 	}
 
 	nextCursor, err := core.EncodeCursor(resp.LastEvaluatedKey)
@@ -122,7 +123,8 @@ func (r *assetRepository) FindByID(ctx context.Context, id string) (*models.Asse
 		return nil, err
 	}
 
-	item.Pk = strings.TrimPrefix(item.Pk, string(core.SkPrefixAsset)+core.KeySeparator)
+	// Extract asset ID from Sk (remove ASSET# prefix) and keep Pk for user ID
+	item.Sk = strings.TrimPrefix(item.Sk, string(core.SkPrefixAsset)+core.KeySeparator)
 	return &item, nil
 }
 

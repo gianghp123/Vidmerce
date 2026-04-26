@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gianghp123/Vidmerce/backend/internal/configs"
@@ -64,13 +65,13 @@ func (s *assetService) GetAsset(ctx context.Context, assetID string) (*res.Asset
 	imageInfos := make([]res.ImageInfo, 0)
 	for _, img := range images {
 		imageInfos = append(imageInfos, res.ImageInfo{
-			ImageID:  img.Sk,
+			ID:       img.Sk,
 			ImageURL: utils.GetCDNURL(img.FileKey),
 		})
 	}
 
 	return &res.AssetRes{
-		AssetID:    assetID,
+		ID:         assetID,
 		Name:       asset.Name,
 		Price:      asset.Price,
 		Images:     imageInfos,
@@ -100,7 +101,7 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 
 	assets := make([]res.AssetRes, 0, len(result.Data))
 	for _, item := range result.Data {
-		assetID := item.Pk
+		assetID := item.Sk
 
 		images, err := s.imageRepo.FindByAssetID(ctx, assetID)
 		if err != nil {
@@ -114,15 +115,15 @@ func (s *assetService) ListAssets(ctx context.Context, limit int, cursor string)
 			break
 		}
 
-		assets = append(assets, res.AssetRes{
-			AssetID:    assetID,
-			Name:       item.Name,
-			Price:      item.Price,
-			Images:     []res.ImageInfo{thumbnail},
-			ProductURL: item.ProductURL,
-			Status:     string(item.Status),
-			CreatedAt:  item.CreatedAt,
-		})
+	assets = append(assets, res.AssetRes{
+		ID:         assetID,
+		Name:       item.Name,
+		Price:      item.Price,
+		Images:     []res.ImageInfo{thumbnail},
+		ProductURL: item.ProductURL,
+		Status:     string(item.Status),
+		CreatedAt:  item.CreatedAt,
+	})
 	}
 
 	log.Debug("Assets listed", zap.String("userId", auth.UserID), zap.Int("count", len(assets)), zap.Bool("hasMore", result.Meta.HasMore))
@@ -202,6 +203,9 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string, req re
 		ImageCount: len(req.FileKeys),
 		CreatedAt:  utils.Now(),
 	}
+	
+	// Normalize Sk to remove ASSET# prefix for DTO mapping
+	asset.Sk = strings.TrimPrefix(asset.Sk, string(core.SkPrefixAsset)+core.KeySeparator)
 
 	images := make([]models.ImageEntity, len(req.FileKeys))
 	for i, fileKey := range req.FileKeys {
@@ -224,14 +228,14 @@ func (s *assetService) ConfirmUpload(ctx context.Context, assetID string, req re
 	imageInfos := make([]res.ImageInfo, len(images))
 	for i, img := range images {
 		imageInfos[i] = res.ImageInfo{
-			ImageID:  fmt.Sprintf("%d", i+1),
+			ID:       fmt.Sprintf("%d", i+1),
 			ImageURL: utils.GetCDNURL(img.FileKey),
 		}
 	}
 
 	var result res.AssetRes
 
-	err = utils.MapToDTO(asset, result)
+	err = utils.MapToDTO(asset, &result)
 	if err != nil {
 		log.Error("Failed to map asset to DTO", zap.Error(err))
 		return nil, response.Internal("failed to map asset to DTO")

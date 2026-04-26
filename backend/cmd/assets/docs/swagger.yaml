@@ -1,5 +1,24 @@
 basePath: /api
 definitions:
+  req.ConfirmUploadReq:
+    properties:
+      fileKeys:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      name:
+        type: string
+      price:
+        type: number
+      productUrl:
+        type: string
+    required:
+    - fileKeys
+    - name
+    - price
+    - productUrl
+    type: object
   req.CreateAssetReq:
     properties:
       imageCount:
@@ -7,19 +26,8 @@ definitions:
         maximum: 5
         minimum: 1
         type: integer
-      name:
-        example: iPhone 15
-        type: string
-      price:
-        example: 999.99
-        type: number
-      productUrl:
-        example: https://example.com/products/iphone-15
-        type: string
     required:
-    - name
-    - price
-    - productUrl
+    - imageCount
     type: object
   req.ImportAssetReq:
     properties:
@@ -48,49 +56,11 @@ definitions:
       status:
         type: string
     type: object
-  res.AssetUpload:
-    properties:
-      expiresIn:
-        example: 300
-        type: integer
-      fileKey:
-        example: assets/abc123/1.jpg
-        type: string
-      uploadUrl:
-        example: https://s3.amazonaws.com/bucket/asset-url
-        type: string
-    type: object
-  res.ConfirmAssetRes:
-    properties:
-      assetId:
-        type: string
-      images:
-        items:
-          $ref: '#/definitions/res.ImageInfo'
-        type: array
-      status:
-        type: string
-    type: object
-  res.CreateAssetRes:
-    properties:
-      assetId:
-        type: string
-      status:
-        type: string
-      uploads:
-        items:
-          $ref: '#/definitions/res.UploadInfo'
-        type: array
-    type: object
   res.ImageInfo:
     properties:
       imageId:
         type: string
       imageUrl:
-        type: string
-      order:
-        type: integer
-      status:
         type: string
     type: object
   res.ImportAssetRes:
@@ -99,6 +69,15 @@ definitions:
         type: string
       jobId:
         type: string
+    type: object
+  res.PresignedUrlsRes:
+    properties:
+      assetId:
+        type: string
+      uploads:
+        items:
+          $ref: '#/definitions/res.UploadInfo'
+        type: array
     type: object
   res.UploadInfo:
     properties:
@@ -142,40 +121,20 @@ definitions:
         - $ref: '#/definitions/response.Meta'
         description: optional
     type: object
-  response.BaseResponse-res_AssetUpload:
-    properties:
-      data:
-        $ref: '#/definitions/res.AssetUpload'
-      error: {}
-      meta:
-        allOf:
-        - $ref: '#/definitions/response.Meta'
-        description: optional
-    type: object
-  response.BaseResponse-res_ConfirmAssetRes:
-    properties:
-      data:
-        $ref: '#/definitions/res.ConfirmAssetRes'
-      error: {}
-      meta:
-        allOf:
-        - $ref: '#/definitions/response.Meta'
-        description: optional
-    type: object
-  response.BaseResponse-res_CreateAssetRes:
-    properties:
-      data:
-        $ref: '#/definitions/res.CreateAssetRes'
-      error: {}
-      meta:
-        allOf:
-        - $ref: '#/definitions/response.Meta'
-        description: optional
-    type: object
   response.BaseResponse-res_ImportAssetRes:
     properties:
       data:
         $ref: '#/definitions/res.ImportAssetRes'
+      error: {}
+      meta:
+        allOf:
+        - $ref: '#/definitions/response.Meta'
+        description: optional
+    type: object
+  response.BaseResponse-res_PresignedUrlsRes:
+    properties:
+      data:
+        $ref: '#/definitions/res.PresignedUrlsRes'
       error: {}
       meta:
         allOf:
@@ -198,7 +157,7 @@ definitions:
       total_pages:
         type: integer
     type: object
-host: localhost:3000
+host: localhost:8000
 info:
   contact:
     email: support@swagger.io
@@ -263,7 +222,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/response.BaseResponse-res_CreateAssetRes'
+            $ref: '#/definitions/response.BaseResponse-res_PresignedUrlsRes'
         "400":
           description: Bad Request
           schema:
@@ -307,6 +266,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.BaseResponse-any'
+      security:
+      - Bearer: []
       summary: Get asset by ID
       tags:
       - assets
@@ -321,13 +282,19 @@ paths:
         name: id
         required: true
         type: string
+      - description: Confirm upload request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/req.ConfirmUploadReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.BaseResponse-res_ConfirmAssetRes'
+            $ref: '#/definitions/response.BaseResponse-res_AssetRes'
         "400":
           description: Bad Request
           schema:
@@ -341,7 +308,7 @@ paths:
           schema:
             $ref: '#/definitions/response.BaseResponse-any'
       security:
-      - ApiKeyAuth: []
+      - Bearer: []
       summary: Confirm asset upload
       tags:
       - assets
@@ -380,45 +347,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.BaseResponse-any'
+      security:
+      - Bearer: []
       summary: Delete asset image
-      tags:
-      - assets
-  /assets/{id}/images/upload-url:
-    get:
-      consumes:
-      - application/json
-      description: Generate a presigned URL for uploading an image to an asset
-      parameters:
-      - description: Asset ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: File name
-        in: query
-        name: fileName
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.BaseResponse-res_AssetUpload'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.BaseResponse-any'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.BaseResponse-any'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.BaseResponse-any'
-      summary: Get image upload URL
       tags:
       - assets
   /assets/import:
@@ -448,6 +379,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.BaseResponse-any'
+      security:
+      - Bearer: []
       summary: Import asset from product URL
       tags:
       - assets

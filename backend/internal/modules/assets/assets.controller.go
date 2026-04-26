@@ -59,7 +59,7 @@ func (ctrl *AssetController) CreateAsset(c *gin.Context) {
 // @Produce      json
 // @Param        id   path      string  true  "Asset ID"
 // @Param        body  body      req.ConfirmUploadReq  true  "Confirm upload request"
-// @Success      200  {object}  response.BaseResponse[res.ConfirmAssetRes]
+// @Success      200  {object}  response.BaseResponse[res.AssetRes]
 // @Failure      400  {object}  response.BaseResponse[any]
 // @Failure      404  {object}  response.BaseResponse[any]
 // @Failure      500  {object}  response.BaseResponse[any]

@@ -8,7 +8,7 @@ type UploadInfo struct {
 }
 
 type ImageInfo struct {
-	ImageID  string `json:"imageId"`
+	ID       string `json:"id"`
 	ImageURL string `json:"imageUrl"`
 }
 
@@ -18,7 +18,7 @@ type PresignedUrlsRes struct {
 }
 
 type AssetRes struct {
-	AssetID    string      `json:"assetId"`
+	ID         string      `json:"id"`
 	Name       string      `json:"name"`
 	Price      float64     `json:"price"`
 	Images     []ImageInfo `json:"images"`

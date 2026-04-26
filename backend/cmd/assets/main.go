@@ -86,7 +86,7 @@ func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.AP
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      localhost:3000
+// @host      localhost:8000
 // @BasePath  /api
 // @schemes   http
 
@@ -100,7 +100,7 @@ func main() {
 	router, awsCfg, _ := setup()
 
 	if awsCfg.IsLocal {
-		log.Printf("Running in LOCAL SERVER mode on http://localhost:3000")
+		log.Printf("Running in LOCAL SERVER mode on http://localhost:8000")
 		if err := router.Run(":8000"); err != nil {
 			log.Fatalf("Failed to run local server: %v", err)
 		}

@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/clerk/clerk-sdk-go/v2"
@@ -43,7 +44,7 @@ func ClerkAuth() gin.HandlerFunc {
 			claims, ok := clerk.SessionClaimsFromContext(r.Context())
 			if !ok {
 				authHeader := r.Header.Get("Authorization")
-				reason := "missing or invalid clerk session"
+				reason := fmt.Sprintf("missing or invalid clerk session, auth header: %s", authHeader)
 				if authHeader == "" {
 					reason = "missing clerk authorization header"
 				}

@@ -16,7 +16,7 @@ import { MAX_IMAGES } from "@/lib/constants";
 import { useServerAction } from "@/lib/hooks/use-server-action";
 import type { IAsset } from "@/types/models/asset.model";
 import { X } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import {
   confirmAssetUpload,
@@ -24,17 +24,12 @@ import {
   uploadImageToS3,
 } from "../services/asset.action";
 
-interface ImageFile {
-  id: string;
-  file: File;
-  preview: string;
-}
-
 interface CreateAssetModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 }
+
 interface ConfirmPayload {
   assetId: string;
   name: string;
@@ -53,17 +48,17 @@ export function CreateAssetModal({
     price: undefined,
     productUrl: "",
   });
-  const [images, setImages] = useState<ImageFile[]>([]);
+  
+  // Updated to use File[] to match the new ImageUploadZone
+  const [images, setImages] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [isPreparing, setIsPreparing] = useState(false);
-
 
   const { dispatch: confirmAction, isPending: isConfirming } = useServerAction<
     IAsset,
     ConfirmPayload
   >(
-    // Wrapper to adapt the existing action to the (prevState, payload) signature
     async (prevState, payload) => {
       return confirmAssetUpload(payload.assetId, {
         name: payload.name,
@@ -76,7 +71,6 @@ export function CreateAssetModal({
       successMessage: "Asset created successfully",
       errorMessage: "Failed to confirm asset upload",
       onSuccess: () => {
-        // Reset form and close modal ONLY on actual success
         setFormData({ name: "", price: undefined, productUrl: "" });
         setImages([]);
         onOpenChange(false);
@@ -101,18 +95,18 @@ export function CreateAssetModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e : React.SubmitEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsPreparing(true);
 
     try {
+      // Step 1: Get Pre-signed URLs
       const uploadUrlResponse = await createAssetGetUploadUrl({
         imageCount: images.length,
       });
 
-      // Assuming your action returns standard BaseResponse wrapper
       if (uploadUrlResponse.error || !uploadUrlResponse.data) {
         throw new Error(uploadUrlResponse.error?.message || "Failed to get upload URLs");
       }
@@ -121,13 +115,17 @@ export function CreateAssetModal({
 
       // Step 2: Upload images to S3
       const results = await Promise.allSettled(
-        images.map((img, index) => {
+        images.map((file, index) => {
           const upload = uploads[index];
           if (!upload)
             return Promise.reject(new Error(`Missing upload URL for image ${index}`));
-          return uploadImageToS3(upload.uploadUrl, img.file);
+          return uploadImageToS3(upload.uploadUrl, file);
         })
       );
+
+      if (results.some((result) => result.status === "rejected")) {
+        throw new Error("Images upload failed, please try again");
+      }
 
       const fileKeys: string[] = [];
       results.forEach((result, index) => {
@@ -146,8 +144,7 @@ export function CreateAssetModal({
         );
       }
 
-      // Step 3: Pass off to the Next.js Server Action Hook for final confirmation
-      // This will automatically toggle `isConfirming` to true, and handle success/error toasts
+      // Step 3: Final confirmation via Server Action Hook
       confirmAction({
         assetId,
         name: formData.name!,
@@ -178,7 +175,7 @@ export function CreateAssetModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-145! max-w-none! rounded-3xl bg-background border-none p-0 shadow-2xl"
+        className="max-w-none! w-fit rounded-3xl bg-background border-none p-0 shadow-2xl"
         showCloseButton={false}
       >
         <DialogHeader className="px-10 pt-10 pb-6 relative">
@@ -195,7 +192,7 @@ export function CreateAssetModal({
           </DialogClose>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="px-10 pb-10 space-y-7">
+        <form onSubmit={handleSubmit} className="px-10 pb-10 space-y-7 md:min-w-145">
           {/* Product Name */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-[11px] font-bold uppercase tracking-[0.15em] text-secondary">
@@ -224,6 +221,7 @@ export function CreateAssetModal({
                 <Input
                   id="price"
                   type="number"
+                  step="0.01"
                   placeholder="0.00"
                   value={formData.price || ""}
                   onChange={(e) => handleInputChange("price", e.target.value)}
@@ -257,25 +255,23 @@ export function CreateAssetModal({
               value={images}
               onChange={setImages}
               maxFiles={MAX_IMAGES}
-              className="border-dashed border-2 border-outline-variant/50 rounded-xl bg-transparent min-h-55"
             />
             {errors.images && <p className="text-sm text-destructive">{errors.images}</p>}
           </div>
 
           {/* Footer Buttons */}
-          <div className="pt-4 flex gap-4">
+          <div className="pt-4 flex gap-4 justify-end">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-14 rounded-xl font-bold text-on-surface-variant bg-surface-container-high hover:bg-surface-container-highest transition-colors"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              variant={"default"}
             >
               {isSubmitting ? "Saving..." : "Save & Upload"}
             </Button>
